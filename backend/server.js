@@ -10,7 +10,7 @@ const app = express();
 
 // CORS configuration - must come BEFORE routes
 const corsOptions = {
-  origin: 'https://movie-explorer-client-two.vercel.app',
+  origin: 'https://movie-explorer-tawny-tau.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
