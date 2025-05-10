@@ -17,6 +17,7 @@ import axios from 'axios';
 import { MovieContext } from '../context/MovieContext';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
+import { API_BASE_URL } from '../config';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 400,
@@ -120,7 +121,7 @@ const Login = () => {
     }
     try {
       const endpoint = isRegister ? 'register' : 'login';
-      const res = await axios.post(`http://localhost:5001/api/auth/${endpoint}`, {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/${endpoint}`, {
         username,
         password,
       });
