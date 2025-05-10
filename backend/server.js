@@ -27,6 +27,7 @@ async function connectToMongo() {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000,
       connectTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
     });
     console.log('MongoDB connected');
     return cachedConnection;
