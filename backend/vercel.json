@@ -14,18 +14,18 @@
         "use": "@vercel/node"
       }
     ],
-    "routes": [
+    "rewrites": [
       {
-        "src": "/api/(.*)",
-        "dest": "backend/server.js"
+        "source": "/api/(.*)",
+        "destination": "backend/server.js"
       },
       {
-        "src": "/(.*)",
-        "dest": "frontend/build/$1"
+        "source": "/(.*)",
+        "destination": "frontend/build/$1"
       },
       {
-        "src": "/(.*)",
-        "dest": "server.js"
+        "source": "/(.*)",
+        "destination": "server.js"
       }
     ],
     "headers": [
