@@ -10,20 +10,6 @@
         "use": "@vercel/node"
       }
     ],
-    "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "backend/server.js"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "frontend/build/$1"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "server.js"
-      }
-    ],
     "rewrites": [
       {
         "source": "/api/(.*)",
@@ -31,7 +17,11 @@
       },
       {
         "source": "/(.*)",
-        "destination": "/"
+        "destination": "/frontend/build/$1"
+      },
+      {
+        "fallback": true,
+        "destination": "/server.js"
       }
     ]
   }
