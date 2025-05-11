@@ -34,9 +34,9 @@ const AppContent = () => {
       <Navbar />
       <Routes>
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
-        <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/movie/:id" element={isAuthenticated ? <MovieDetails /> : <Navigate to="/login" />} />
-        <Route path="/favorites" element={isAuthenticated ? <Favorites /> : <Navigate to="/login" />} />
+        <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/" />} />
+        <Route path="/movie/:id" element={isAuthenticated ? <MovieDetails /> : <Navigate to="/" />} />
+        <Route path="/favorites" element={isAuthenticated ? <Favorites /> : <Navigate to="/" />} />
       </Routes>
     </ThemeProvider>
   );
