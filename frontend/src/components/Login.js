@@ -1,19 +1,22 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
-  Container,
+  Box,
   Card,
   TextField,
   Button,
   Typography,
-  Box,
   Alert,
   IconButton,
   InputAdornment,
   Fade,
+  CircularProgress,
   useTheme,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from 'axios';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import { MovieContext } from '../context/MovieContext';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
@@ -23,9 +26,10 @@ const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 400,
   width: '100%',
   padding: theme.spacing(4),
-  borderRadius: theme.shape.borderRadius * 10,
+  borderRadius: theme.shape.borderRadius * 2,
   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-  backgroundColor: theme.palette.background.paper,
+  background: 'rgba(255, 255, 255, 0.1)',
+  backdropFilter: 'blur(10px)',
   [theme.breakpoints.down('sm')]: {
     padding: theme.spacing(3),
   },
@@ -36,46 +40,11 @@ const CinematicBox = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundImage: `
-    linear-gradient(rgba(0, 0, 0, ${theme.palette.mode === 'dark' ? '0.7' : '0.5'}),
-    rgba(0, 0, 0, ${theme.palette.mode === 'dark' ? '0.7' : '0.5'})),
-    url('https://images.unsplash.com/photo-1489599849927-2ee91cede3f5?q=80&w=2070&auto=format&fit=crop')
-  `,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
-  padding: theme.spacing(2),
   position: 'relative',
   overflow: 'hidden',
-  // Fallback gradient
   background: theme.palette.mode === 'dark'
     ? 'linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 100%)'
-    : 'linear-gradient(135deg, #f0f0f0 0%, #d9d9d9 100%)',
-  // Particle effect
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: `
-      radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
-      radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
-      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 2px, transparent 2px)
-    `,
-    backgroundSize: '1000px 1000px',
-    animation: 'particles 20s linear infinite',
-    opacity: theme.palette.mode === 'dark' ? 0.3 : 0.2,
-  },
-  '@keyframes particles': {
-    '0%': {
-      backgroundPosition: '0 0',
-    },
-    '100%': {
-      backgroundPosition: '1000px 1000px',
-    },
-  },
+    : 'linear-gradient(135deg, #f0f0f0 0%, šk#d9d9d9 100%)',
 }));
 
 const SubmitButton = styled(Button)(({ theme }) => ({
@@ -109,8 +78,38 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [bannerTrending, setBannerTrending] = useState([]);
+  const [bannerLoading, setBannerLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
   const navigate = useNavigate();
   const theme = useTheme();
+
+  // Fetch trending movies for background
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        console.log('Fetching trending movies from:', `${API_BASE_URL}/api/movies/trending`);
+        const res = await axios.get(`${API_BASE_URL}/api/movies/trending`);
+        console.log('API Response:', res.data);
+        const allTrending = Array.isArray(res.data) ? res.data : [];
+        const filteredTrending = allTrending
+          .filter(movie => movie.backdrop_path)
+          .slice(0, 5); // Reduced to 5 for performance
+        setBannerTrending(
+          filteredTrending.length
+            ? filteredTrending
+            : [{ id: 'fallback', title: 'No Trending Movies', backdrop_path: '/8cdWjvZNUXbCnvG8IwV6W316pwH.jpg' }]
+        );
+      } catch (err) {
+        console.error('Trending Error:', err.message, err.response?.data);
+        setFetchError('Failed to load background images.');
+        setBannerTrending([{ id: 'fallback', title: 'No Trending Movies', backdrop_path: '/8cdWjvZNUXbCnvG8IwV6W316pwH.jpg' }]);
+      } finally {
+        setBannerLoading(false);
+      }
+    };
+    fetchTrending();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -128,7 +127,7 @@ const Login = () => {
       login(res.data.token);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.error || 'An error occurred');
+      setError(err.response?.data?.error || 'An error occurred during authentication');
     }
   };
 
@@ -136,8 +135,61 @@ const Login = () => {
     setShowPassword((prev) => !prev);
   };
 
+  // Slider settings for background
+  const sliderSettings = {
+    dots: false,
+    infinite: true,
+    speed: 1000,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 5000,
+    arrows: false,
+    fade: true,
+  };
+
   return (
     <CinematicBox>
+      {/* Background Slider */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: -1,
+        }}
+      >
+        {bannerLoading ? (
+          <CircularProgress sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+        ) : (
+          <Slider {...sliderSettings}>
+            {bannerTrending.map(movie => (
+              <Box
+                key={movie.id}
+                sx={{
+                  height: '100vh',
+                  backgroundImage: `url(https://image.tmdb.org/t/p/w780${movie.backdrop_path})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  filter: 'blur(8px) brightness(0.6)',
+                  transform: 'scale(1.1)', // Slight zoom to avoid edges
+                }}
+              />
+            ))}
+          </Slider>
+        )}
+      </Box>
+
+      {/* Error Message for Fetch Issues */}
+      {fetchError && (
+        <Alert severity="warning" sx={{ position: 'absolute', top: 16, width: '90%', maxWidth: 400, mx: 'auto' }}>
+          {fetchError}
+        </Alert>
+      )}
+
+      {/* Login/Register Form */}
       <Fade in timeout={800}>
         <StyledCard>
           <Typography
