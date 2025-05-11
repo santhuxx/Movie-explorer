@@ -8,27 +8,24 @@
       {
         "src": "backend/server.js",
         "use": "@vercel/node"
-      }
-    ],
-    "rewrites": [
-      {
-        "source": "/api/(.*)",
-        "destination": "server.js"
       },
       {
-        "source": "/(.*)",
-        "destination": "frontend/build/$1"
+        "src": "server.js",
+        "use": "@vercel/node"
       }
     ],
-    "headers": [
+    "routes": [
       {
-        "source": "/api/(.*)",
-        "headers": [
-          { "key": "Access-Control-Allow-Credentials", "value": "true" },
-          { "key": "Access-Control-Allow-Origin", "value": "https://movie-explorer-client-f5b5mkara-santhushas-projects-9a02ec71.vercel.app" },
-          { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-          { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
-        ]
+        "src": "/api/(.*)",
+        "dest": "backend/server.js"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "frontend/build/$1"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "server.js"
       }
     ]
   }
