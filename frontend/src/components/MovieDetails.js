@@ -32,7 +32,7 @@ const MovieDetails = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     axios
-      .get(`http://localhost:5001/api/movies/${id}`)
+      .get(`https://movie-explorer-topaz.vercel.app/api/movies/${id}`)
       .then(res => {
         setMovie(res.data);
         setLoading(false);
