@@ -10,19 +10,9 @@ const app = express();
 
 // CORS configuration - must come BEFORE routes
 // In your server.js
-app.use(cors({
-    origin: [
-      'https://movie-explorer-tawny-tau.vercel.app',
-      'https://movie-explorer-client-f5b5mkara-santhushas-projects-9a02ec71.vercel.app',
-      /\.vercel\.app$/  // This matches any vercel.app subdomain
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-  }));
+app.use(cors());
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Enable preflight for all routes
+ // Enable preflight for all routes
 
 // Parse JSON bodies
 app.use(express.json());

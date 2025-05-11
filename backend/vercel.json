@@ -6,10 +6,6 @@
         "use": "@vercel/static"
       },
       {
-        "src": "backend/server.js",
-        "use": "@vercel/node"
-      },
-      {
         "src": "server.js",
         "use": "@vercel/node"
       }
@@ -26,6 +22,16 @@
       {
         "src": "/(.*)",
         "dest": "server.js"
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/(.*)",
+        "destination": "/backend/server.js"
+      },
+      {
+        "source": "/(.*)",
+        "destination": "/"
       }
     ]
   }
