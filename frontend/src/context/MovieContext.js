@@ -39,7 +39,7 @@ export const MovieProvider = ({ children }) => {
       if (token) {
         try {
           // Example: Validate token with backend
-          const res = await axios.get('http://localhost:5001/api/auth/validate', {
+          const res = await axios.get('https://movie-explorer-topaz.vercel.app/api/auth/validate', {
             headers: { Authorization: `Bearer ${token}` },
           });
           setUser(res.data.user); // e.g., { username: 'test' }
@@ -61,7 +61,7 @@ export const MovieProvider = ({ children }) => {
   const login = async (token) => {
     try {
       localStorage.setItem('token', token);
-      const res = await axios.get('http://localhost:5001/api/auth/validate', {
+      const res = await axios.get('https://movie-explorer-topaz.vercel.app/api/auth/validate', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data.user);
