@@ -260,9 +260,6 @@ const Login = () => {
     </CinematicBox>
   );
 };
-
-
-
 export default Login;
 
 
