@@ -20,7 +20,7 @@
         "destination": "/frontend/build/$1"
       },
       {
-        "fallback": true,
+        "source": "/(.*)",
         "destination": "/server.js"
       }
     ]
