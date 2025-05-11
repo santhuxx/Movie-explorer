@@ -145,7 +145,7 @@ const Login = () => {
             align="center"
             sx={{ fontWeight: 700, mb: 3, color: theme.palette.text.primary }}
           >
-            {isRegister ? 'Create Account' : 'Welcome Back'}
+            {isRegister ? 'Create Account' : 'Welcome'}
           </Typography>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
