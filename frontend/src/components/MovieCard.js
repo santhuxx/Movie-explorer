@@ -79,7 +79,18 @@ const MovieCard = ({ movie }) => {
         <Typography
           variant="h6"
           noWrap
-          sx={{ fontSize: { xs: '0.9rem', sm: '1.1rem' }, fontWeight: 600 }}
+          sx={{
+            fontSize: { xs: '0.9rem', sm: '1.1rem' },
+            fontWeight: 600,
+            color: 'inherit', // Inherit white color from parent
+            textDecoration: 'none', // Remove underline
+            '&:hover': {
+              textDecoration: 'bold', // Add underline on hover for visual feedback
+            },
+          }}
+          component={Link}
+          to={`/movie/${movie.id}`}
+          aria-label={`View details for ${movie.title}`}
         >
           {movie.title}
         </Typography>
