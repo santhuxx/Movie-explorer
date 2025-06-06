@@ -22,6 +22,7 @@ import {
   Language,
   People,
 } from '@mui/icons-material';
+import { API_BASE_URL } from '../config';
 
 const MovieDetails = () => {
   const { id } = useParams();
@@ -32,7 +33,7 @@ const MovieDetails = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     axios
-      .get(`https://movie-explorer-topaz.vercel.app/api/movies/${id}`)
+      .get(`${API_BASE_URL}/api/movies/${id}`)
       .then(res => {
         setMovie(res.data);
         setLoading(false);

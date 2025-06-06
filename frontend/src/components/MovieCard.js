@@ -124,7 +124,7 @@ const MovieCard = ({ movie }) => {
             }}
             aria-label={`View details for ${movie.title}`}
           >
-            Details
+            Explore
           </Button>
           <IconButton
             onClick={handleFavoriteToggle}
