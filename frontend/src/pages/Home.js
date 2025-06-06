@@ -69,7 +69,7 @@ const Home = () => {
         setTrending(allTrending);
         const filteredTrending = allTrending
           .filter(movie => movie.backdrop_path)
-          .slice(0, 10);
+          .slice(0, 20);
         setBannerTrending(
           filteredTrending.length
             ? filteredTrending
@@ -577,6 +577,7 @@ const Home = () => {
             sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}
           >
             Trending Movies
+            
           </Typography>
           <Grid container spacing={{ xs: 1, sm: 2 }}>
             {trending.map(movie => (
