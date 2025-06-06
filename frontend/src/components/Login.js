@@ -47,11 +47,9 @@ const CinematicBox = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
   position: 'relative',
   overflow: 'hidden',
-  // Fallback gradient
   background: theme.palette.mode === 'dark'
     ? 'linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 100%)'
     : 'linear-gradient(135deg, #f0f0f0 0%, #d9d9d9 100%)',
-  // Particle effect
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -69,12 +67,8 @@ const CinematicBox = styled(Box)(({ theme }) => ({
     opacity: theme.palette.mode === 'dark' ? 0.3 : 0.2,
   },
   '@keyframes particles': {
-    '0%': {
-      backgroundPosition: '0 0',
-    },
-    '100%': {
-      backgroundPosition: '1000px 1000px',
-    },
+    '0%': { backgroundPosition: '0 0' },
+    '100%': { backgroundPosition: '1000px 1000px' },
   },
 }));
 
@@ -106,9 +100,11 @@ const Login = () => {
   const { login } = useContext(MovieContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -119,21 +115,31 @@ const Login = () => {
       setError('Please enter both username and password');
       return;
     }
+    if (isRegister && password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
     try {
       const endpoint = isRegister ? 'register' : 'login';
       const res = await axios.post(`${API_BASE_URL}/api/auth/${endpoint}`, {
         username,
         password,
       });
-      login(res.data.token);
+      console.log('Login/Register response:', res.data);
+      await login(res.data.token); // Ensure login completes
       navigate('/');
     } catch (err) {
+      console.error('Login/Register error:', err.response?.data || err.message);
       setError(err.response?.data?.error || 'An error occurred');
     }
   };
 
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
+  };
+
+  const handleToggleConfirmPassword = () => {
+    setShowConfirmPassword((prev) => !prev);
   };
 
   return (
@@ -185,8 +191,38 @@ const Login = () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{ mb: 3 }}
+              sx={{ mb: 2 }}
             />
+            {isRegister && (
+              <TextField
+                label="Confirm Password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                fullWidth
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                margin="normal"
+                variant="outlined"
+                autoComplete="new-password"
+                error={!!error && (!confirmPassword || password !== confirmPassword)}
+                helperText={
+                  !confirmPassword && error
+                    ? 'Please confirm your password'
+                    : error && password !== confirmPassword
+                    ? 'Passwords do not match'
+                    : ''
+                }
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={handleToggleConfirmPassword} edge="end">
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 3 }}
+              />
+            )}
             <SubmitButton type="submit" variant="contained" fullWidth>
               {isRegister ? 'Register' : 'Login'}
             </SubmitButton>
@@ -196,6 +232,7 @@ const Login = () => {
                 setError('');
                 setUsername('');
                 setPassword('');
+                setConfirmPassword('');
               }}
               fullWidth
               sx={{ mt: 2 }}
