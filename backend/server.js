@@ -10,7 +10,7 @@ const app = express();
 
 // CORS configuration - must come BEFORE routes
 app.use(cors({
-  origin: process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://movie-explorer-topaz.vercel.app',
+  origin: process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://movie-explorer-client-iota.vercel.app',
   credentials: true,
 }));
 
