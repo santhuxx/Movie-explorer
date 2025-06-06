@@ -14,6 +14,7 @@ ReactDOM.render(
       <App />
       <Analytics />
       <SpeedInsights />
+      
     </MovieProvider>
   </BrowserRouter>,
   document.getElementById('root')
