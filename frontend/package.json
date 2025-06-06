@@ -12,6 +12,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^5.17.1",
     "@mui/material": "^5.17.1",
+    "@vercel/analytics": "^1.5.0",
     "axios": "^1.9.0",
     "framer-motion": "^12.10.5",
     "lucide-react": "^0.509.0",
@@ -20,9 +21,7 @@
     "react-router-dom": "^6.30.0",
     "react-scripts": "5.0.1",
     "react-slick": "^0.30.3",
-    "slick-carousel": "^1.8.1",
-    "@vercel/analytics": "^1.5.0",
-    "typescript": "^5.5.3"
+    "slick-carousel": "^1.8.1"
   },
   "browserslist": {
     "production": [
@@ -35,5 +34,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5"
   }
 }
