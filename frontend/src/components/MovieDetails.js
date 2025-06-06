@@ -95,7 +95,7 @@ const MovieDetails = () => {
         <Box
           sx={{
             position: 'relative',
-            height: { xs: '80vh', sm: '70vh', md: '70vh' }, // Increased height on mobile
+            height: { xs: 'auto', sm: '70vh', md: '70vh' },
             width: '100%',
             overflow: 'hidden',
             '&::before': {
@@ -116,30 +116,38 @@ const MovieDetails = () => {
           <Container
             maxWidth="lg"
             sx={{
-              height: '100%',
               display: 'flex',
               flexDirection: { xs: 'column', md: 'row' },
               alignItems: 'center',
               justifyContent: 'center',
-              pt: { xs: 4, sm: 8 }, // Reduced padding-top on mobile
+              pt: { xs: 4, sm: 8 },
+              pb: { xs: 4, sm: 0 },
+              minHeight: { xs: '80vh', sm: '70vh' },
             }}
           >
             {/* Poster */}
             <Box
               sx={{
-                width: { xs: '60%', sm: '40%', md: '30%' },
+                width: { xs: '50%', sm: '35%', md: '25%' },
+                maxWidth: '300px',
                 mb: { xs: 2, md: 0 },
                 mr: { md: 4 },
                 borderRadius: 2,
                 overflow: 'hidden',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                transform: 'translateY(20px)',
+                transform: { xs: 'translateY(10px)', md: 'translateY(20px)' },
+                aspectRatio: '2/3',
+                '& img': {
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                },
               }}
             >
               <img
                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                 alt={movie.title}
-                style={{ width: '100%', display: 'block', aspectRatio: '2/3' }}
                 loading="lazy"
               />
             </Box>
@@ -150,6 +158,9 @@ const MovieDetails = () => {
                 color: 'white',
                 width: { xs: '100%', md: '60%' },
                 textAlign: { xs: 'center', md: 'left' },
+                overflow: 'visible',
+                padding: { xs: 0, sm: 2, md: 0 }, // Adjusted padding for sm range
+                maxHeight: 'none', // Ensure no height constraint cuts off content
               }}
             >
               <Typography
@@ -159,6 +170,7 @@ const MovieDetails = () => {
                   fontWeight: 700,
                   mb: 1,
                   fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' },
+                  wordBreak: 'break-word', // Prevent text overflow
                 }}
               >
                 {movie.title}
@@ -172,6 +184,7 @@ const MovieDetails = () => {
                     opacity: 0.8,
                     mb: 2,
                     fontSize: { xs: '1rem', sm: '1.25rem' },
+                    wordBreak: 'break-word',
                   }}
                 >
                   {movie.tagline}
@@ -270,6 +283,7 @@ const MovieDetails = () => {
                   lineHeight: 1.6,
                   maxWidth: '90%',
                   mx: { xs: 'auto', md: 0 },
+                  wordBreak: 'break-word', // Prevent text overflow
                 }}
               >
                 {movie.overview}
