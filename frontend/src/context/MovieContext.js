@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 export const MovieContext = createContext();
 
@@ -16,14 +17,12 @@ export const MovieProvider = ({ children }) => {
     const savedFavorites = localStorage.getItem('favorites');
     return savedFavorites ? JSON.parse(savedFavorites) : [];
   });
-  const [user, setUser] = useState(null); // Store user data (e.g., username)
+  const [user, setUser] = useState(null);
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     setIsDarkMode((prevMode) => !prevMode);
   };
 
-  // Persist dark mode and last search
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
   }, [isDarkMode]);
@@ -32,28 +31,31 @@ export const MovieProvider = ({ children }) => {
     localStorage.setItem('lastSearch', lastSearch);
   }, [lastSearch]);
 
-  // Validate token on mount
   useEffect(() => {
     const validateToken = async () => {
       const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          // Example: Validate token with backend
-          const res = await axios.get('https://movie-explorer-topaz.vercel.app/api/auth/validate', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setUser(res.data.user); // e.g., { username: 'test' }
-          setIsAuthenticated(true);
-        } catch (err) {
-          console.error('Token validation failed:', err);
-          logout(); // Clear invalid token
+      if (!token) {
+        console.log('No token found, skipping validation');
+        return;
+      }
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/validate`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log('Validation success:', res.data.user);
+        setUser(res.data.user);
+        setIsAuthenticated(true);
+      } catch (err) {
+        console.error('Token validation failed:', err.response?.data || err.message);
+        if (err.response?.data?.error === 'Token expired') {
+          alert('Session expired. Please log in again.');
         }
+        logout();
       }
     };
     validateToken();
   }, []);
 
-  // Persist favorites
   useEffect(() => {
     localStorage.setItem('favorites', JSON.stringify(favorites));
   }, [favorites]);
@@ -61,13 +63,14 @@ export const MovieProvider = ({ children }) => {
   const login = async (token) => {
     try {
       localStorage.setItem('token', token);
-      const res = await axios.get('https://movie-explorer-topaz.vercel.app/api/auth/validate', {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/validate`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log('Login validation success:', res.data.user);
       setUser(res.data.user);
       setIsAuthenticated(true);
     } catch (err) {
-      console.error('Login failed:', err);
+      console.error('Login validation failed:', err.response?.data || err.message);
       logout();
     }
   };
@@ -83,18 +86,16 @@ export const MovieProvider = ({ children }) => {
   const addFavorite = (movie) => {
     setFavorites((prevFavorites) => {
       if (!prevFavorites.some((fav) => fav.id === movie.id)) {
-        const newFavorites = [...prevFavorites, movie];
-        return newFavorites;
+        return [...prevFavorites, movie];
       }
       return prevFavorites;
     });
   };
 
   const removeFavorite = (movieId) => {
-    setFavorites((prevFavorites) => {
-      const newFavorites = prevFavorites.filter((fav) => fav.id !== movieId);
-      return newFavorites;
-    });
+    setFavorites((prevFavorites) =>
+      prevFavorites.filter((fav) => fav.id !== movieId)
+    );
   };
 
   const clearFavorites = () => {

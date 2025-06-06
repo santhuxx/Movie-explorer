@@ -4,11 +4,13 @@ import App from './App';
 import './index.css';
 import { BrowserRouter } from 'react-router-dom';
 import { MovieProvider } from './context/MovieContext';
+import { Analytics } from '@vercel/analytics/react';
 
 ReactDOM.render(
   <BrowserRouter>
     <MovieProvider>
       <App />
+      <Analytics />
     </MovieProvider>
   </BrowserRouter>,
   document.getElementById('root')

@@ -8,6 +8,7 @@ import MovieDetails from './components/MovieDetails';
 import Favorites from './components/Favorites';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
+import { Analytics } from "@vercel/analytics/react"
 
 const AppContent = () => {
   const { isDarkMode, isAuthenticated } = useContext(MovieContext);
@@ -46,6 +47,7 @@ const App = () => {
   return (
     <MovieProvider>
       <AppContent />
+      <Analytics />
     </MovieProvider>
   );
 };
