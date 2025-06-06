@@ -24,7 +24,7 @@ import {
 import { MovieContext } from '../context/MovieContext';
 
 const Navbar = () => {
-  const { isDarkMode, toggleDarkMode, setIsAuthenticated } = useContext(MovieContext);
+  const { isDarkMode, toggleDarkMode, setIsAuthenticated, logout } = useContext(MovieContext);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ const Navbar = () => {
 
   // Handle sign out
   const handleSignOut = () => {
-    setIsAuthenticated(false);
+    logout(); // Use the logout function from MovieContext
     navigate('/login');
   };
 
@@ -51,7 +51,7 @@ const Navbar = () => {
 
   // Drawer content
   const drawerContent = (
-    <Box sx={{ width: 250, bgcolor: isDarkMode ? 'background.default' : 'background.paper' }}>
+    <Box sx={{ width: 250, height: '100%', bgcolor: isDarkMode ? '#121212' : 'background.paper' }}>
       <Box sx={{ p: 2 }}>
         <Typography
           variant="h6"
@@ -137,7 +137,7 @@ const Navbar = () => {
                 : 'black'
               : 'white',
             fontWeight: 'bold',
-            fontSize: { xs: '1.1rem', sm: '1.5rem' }, // Responsive font size
+            fontSize: { xs: '1.1rem', sm: '1.5rem' },
           }}
         >
           MovieApp
@@ -223,12 +223,12 @@ const Navbar = () => {
         open={mobileOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true, // Better performance on mobile
+          keepMounted: true,
         }}
         sx={{
           display: { xs: 'block', sm: 'none' },
           '& .MuiDrawer-paper': {
-            bgcolor: isDarkMode ? 'background.default' : 'background.paper',
+            bgcolor: isDarkMode ? '#121212' : 'background.paper', // Set full Drawer background to black in dark mode
           },
         }}
       >
