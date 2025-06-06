@@ -9,6 +9,7 @@ import Favorites from './components/Favorites';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
 import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 const AppContent = () => {
   const { isDarkMode, isAuthenticated } = useContext(MovieContext);
@@ -48,6 +49,7 @@ const App = () => {
     <MovieProvider>
       <AppContent />
       <Analytics />
+      <SpeedInsights />
     </MovieProvider>
   );
 };
