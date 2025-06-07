@@ -14,6 +14,8 @@ ReactDOM.render(
       <App />
       <Analytics />
       <SpeedInsights />
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7001636087856196"
+     crossorigin="anonymous"></script>
     </MovieProvider>
   </BrowserRouter>,
   document.getElementById('root')
