@@ -25,7 +25,7 @@
 
 ## 🌐 Live Demo
 
-Experience MovieMaster in action: [moviemaster-app.vercel.app](https://movie-explorer-client-iota.vercel.app/)
+Experience MovieMaster in action: [Flickx-app.vercel.app](https://movie-explorer-client-iota.vercel.app/)
 
 ---
 
