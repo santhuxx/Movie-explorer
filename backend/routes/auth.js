@@ -2,44 +2,42 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { OAuth2Client } = require('google-auth-library');
 const router = express.Router();
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Register
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
   try {
-    // Validate input
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email, and password are required' });
     }
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    // Check for existing user
-    let user = await User.findOne({ username });
+    let user = await User.findOne({ $or: [{ username }, { email }] });
     if (user) {
-      return res.status(400).json({ error: 'Username already exists' });
+      return res.status(400).json({
+        error: user.username === username ? 'Username already exists' : 'Email already exists'
+      });
     }
 
-    // Create new user
-    user = new User({ username, password });
+    user = new User({ username, email, password });
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
     await user.save();
 
-    // Generate JWT
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
-
-    // Return token and user data
-    res.json({
-      token,
-      user: { username: user.username, id: user._id },
-    });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, user: { username: user.username, email: user.email, id: user._id } });
   } catch (error) {
     console.error('Registration error:', error);
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message).join(', ');
+      return res.status(400).json({ error: `Validation failed: ${messages}` });
+    }
     res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 });
@@ -48,33 +46,22 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    // Validate input
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    // Check for user
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({ error: 'Invalid username or password' });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid username or password' });
     }
 
-    // Generate JWT
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
-
-    // Return token and user data
-    res.json({
-      token,
-      user: { username: user.username, id: user._id },
-    });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, user: { username: user.username, email: user.email, id: user._id } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed. Please try again.' });
@@ -89,23 +76,65 @@ router.get('/validate', async (req, res) => {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    // Verify JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select('-password');
     if (!user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    // Return user data
-    res.json({
-      user: { username: user.username, id: user._id },
-    });
+    res.json({ user: { username: user.username, email: user.email, id: user._id } });
   } catch (error) {
     console.error('Token validation error:', error);
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ error: 'Token expired' });
     }
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// Google Sign-In
+router.post('/google', async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res.status(400).json({ error: 'ID token is required' });
+  }
+
+  try {
+    console.log('Received credential:', credential.substring(0, 20) + '...');
+    console.log('Verifying with audience:', process.env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    console.log('Verification successful, payload:', ticket.getPayload());
+
+    const payload = ticket.getPayload();
+    const googleId = payload.sub;
+    const email = payload.email;
+    const name = payload.name;
+
+    // Derive username from email
+    const username = email.split('@')[0];
+
+    let user = await User.findOne({ googleId });
+    if (!user) {
+      user = new User({ googleId, email, name, username });
+      await user.save();
+    } else if (!user.username) {
+      user.username = username;
+      await user.save();
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, user: { username: user.username, email: user.email, id: user._id } });
+  } catch (error) {
+    console.error('Google authentication error details:', {
+      message: error.message,
+      stack: error.stack,
+      credential: credential.substring(0, 20) + '...',
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    res.status(401).json({ error: 'Google authentication failed' });
   }
 });
 
