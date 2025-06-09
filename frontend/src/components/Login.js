@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import {
   Container,
   Card,
@@ -96,9 +96,50 @@ const ToggleButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+// Custom styled Google button wrapper with increased specificity
+const GoogleButtonWrapper = styled('div')(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  '& .g_id_signin': {
+    display: 'flex !important',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+    borderRadius: theme.shape.borderRadius * 2,
+    backgroundColor: '#4285f4 !important', // Enforce blue background
+    fontWeight: 600,
+    textTransform: 'none',
+    padding: theme.spacing(1.5),
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      backgroundColor: '#357abd',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.3)',
+    },
+    '& .g_id_signin_icon': {
+      marginRight: theme.spacing(1),
+    },
+    '& .g_id_signin_text': {
+      fontSize: '1rem',
+      fontWeight: 600,
+      color: theme.palette.primary.main, // Enforce blue
+    },
+  },
+  // Fallback to ensure text color applies
+  '& .g_id_signin::after': {
+    content: 'attr(data-text)', // Fallback if text is not directly accessible
+    position: 'absolute',
+    color: theme.palette.primary.main,
+    pointerEvents: 'none',
+    zIndex: 1,
+  },
+}));
+
 const Login = () => {
   const { login } = useContext(MovieContext);
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -107,6 +148,56 @@ const Login = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
+  const googleButtonRef = useRef(null);
+
+  useEffect(() => {
+    const initializeGoogle = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+          auto_select: false,
+          cancel_on_tap_outside: false,
+          context: 'signin',
+        });
+        if (googleButtonRef.current) {
+          window.google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: 'outline',
+            size: 'large',
+            type: 'standard',
+            text: 'signin_with',
+            shape: 'rectangular',
+            logo_alignment: 'left',
+          });
+        }
+      }
+    };
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = initializeGoogle;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleGoogleResponse = async (response) => {
+    console.log('Google response:', response);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/google`, {
+        credential: response.credential,
+      });
+      console.log('Login response:', res.data);
+      await login(res.data.token);
+      navigate('/');
+    } catch (err) {
+      console.error('Google Sign-In error:', err.response?.data || err.message);
+      setError(err.response?.data?.error || 'Google Sign-In failed');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -115,18 +206,24 @@ const Login = () => {
       setError('Please enter both username and password');
       return;
     }
-    if (isRegister && password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+    if (isRegister) {
+      if (!email) {
+        setError('Please enter an email address');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
     }
     try {
       const endpoint = isRegister ? 'register' : 'login';
-      const res = await axios.post(`${API_BASE_URL}/api/auth/${endpoint}`, {
-        username,
-        password,
-      });
+      const payload = isRegister
+        ? { username, email, password }
+        : { username, password };
+      const res = await axios.post(`${API_BASE_URL}/api/auth/${endpoint}`, payload);
       console.log('Login/Register response:', res.data);
-      await login(res.data.token); // Ensure login completes
+      await login(res.data.token);
       navigate('/');
     } catch (err) {
       console.error('Login/Register error:', err.response?.data || err.message);
@@ -171,6 +268,20 @@ const Login = () => {
               helperText={!username && error ? 'Username is required' : ''}
               sx={{ mb: 2 }}
             />
+            {isRegister && (
+              <TextField
+                label="Email"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                margin="normal"
+                variant="outlined"
+                autoComplete="email"
+                error={!!error && !email}
+                helperText={!email && error ? 'Email is required' : ''}
+                sx={{ mb: 2 }}
+              />
+            )}
             <TextField
               label="Password"
               type={showPassword ? 'text' : 'password'}
@@ -223,6 +334,9 @@ const Login = () => {
                 sx={{ mb: 3 }}
               />
             )}
+            <GoogleButtonWrapper>
+              <div ref={googleButtonRef} />
+            </GoogleButtonWrapper>
             <SubmitButton type="submit" variant="contained" fullWidth>
               {isRegister ? 'Register' : 'Login'}
             </SubmitButton>
@@ -231,6 +345,7 @@ const Login = () => {
                 setIsRegister(!isRegister);
                 setError('');
                 setUsername('');
+                setEmail('');
                 setPassword('');
                 setConfirmPassword('');
               }}

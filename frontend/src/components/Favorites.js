@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -8,6 +8,7 @@ import {
   Fade,
   Skeleton,
   Divider,
+  Alert,
 } from '@mui/material';
 import { Delete } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
@@ -17,19 +18,19 @@ import { styled } from '@mui/material/styles';
 
 const HeroBox = styled(Box)(({ theme }) => ({
   position: 'relative',
-  height: '40vh', // Reduced height for mobile
+  height: '40vh',
   width: '100%',
   overflow: 'hidden',
-  backgroundColor: 'black !important', // Enforce black background
+  backgroundColor: 'black !important',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
   textAlign: 'center',
   color: theme.palette.common.white,
-  padding: theme.spacing(3), // Reduced padding
+  padding: theme.spacing(3),
   [theme.breakpoints.down('sm')]: {
-    height: '30vh', // Further reduced for small screens
+    height: '30vh',
     padding: theme.spacing(2),
   },
   '&::before': {
@@ -60,20 +61,20 @@ const ClearButton = styled(Button)(({ theme }) => ({
     color: theme.palette.action.disabledBackground,
   },
   [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(1, 2), // Smaller padding for mobile
-    fontSize: '0.875rem', // Smaller font size
+    padding: theme.spacing(1, 2),
+    fontSize: '0.875rem',
   },
 }));
 
 const EmptyStateBox = styled(Box)(({ theme }) => ({
-  minHeight: '40vh', // Reduced height for mobile
+  minHeight: '40vh',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
   background: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(3), // Reduced padding
+  padding: theme.spacing(3),
   boxShadow:
     theme.palette.mode === 'dark'
       ? '0 4px 15px rgba(0, 0, 0, 0.3)'
@@ -86,12 +87,18 @@ const EmptyStateBox = styled(Box)(({ theme }) => ({
 }));
 
 const Favorites = () => {
-  const { favorites, setFavorites } = useContext(MovieContext);
+  const { favorites, clearFavorites } = useContext(MovieContext);
   const theme = useTheme();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const clearFavorites = () => {
-    setFavorites([]); // Clear the favorites list
-  };
+  // Simulate loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <Fade in timeout={800}>
@@ -105,7 +112,7 @@ const Favorites = () => {
               fontWeight: 700,
               mb: 1,
               color: 'common.white',
-              fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' }, // Responsive font size
+              fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' },
             }}
           >
             Your Favorite Movies
@@ -116,7 +123,7 @@ const Favorites = () => {
               opacity: 0.8,
               maxWidth: '600px',
               color: 'common.white',
-              fontSize: { xs: '0.9rem', sm: '1rem' }, // Responsive font size
+              fontSize: { xs: '0.9rem', sm: '1rem' },
             }}
           >
             Explore your handpicked collection of favorite films, curated just for you.
@@ -125,7 +132,29 @@ const Favorites = () => {
 
         {/* Main Content */}
         <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6 } }}>
-          {favorites.length === 0 ? (
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          {isLoading ? (
+            <Grid container spacing={{ xs: 1, sm: 2 }} justifyContent="center">
+              {[...Array(4)].map((_, index) => (
+                <Grid item xs= {6} sm={4} md={3} key={index}>
+                  <Skeleton
+                    variant="rectangular"
+                    width="100%"
+                    height={{ xs: 200, sm: 300 }}
+                    animation="wave"
+                    sx={{
+                      borderRadius: 2,
+                      bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200',
+                    }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          ) : favorites.length === 0 ? (
             <EmptyStateBox>
               <Typography
                 variant="h5"
@@ -151,12 +180,12 @@ const Favorites = () => {
                 Start adding movies to your favorites by clicking the heart icon on movie cards in the search results or movie details.
               </Typography>
               <Grid container spacing={2} justifyContent="center">
-                {[...Array(2)].map((_, index) => ( // Reduced to 2 skeletons for mobile
+                {[...Array(2)].map((_, index) => (
                   <Grid item xs={6} sm={4} md={3} key={index}>
                     <Skeleton
                       variant="rectangular"
                       width="100%"
-                      height={{ xs: 200, sm: 300 }} // Smaller height on mobile
+                      height={{ xs: 200, sm: 300 }}
                       animation="wave"
                       sx={{
                         borderRadius: 2,

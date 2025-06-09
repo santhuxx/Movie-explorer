@@ -13,29 +13,30 @@ export const MovieProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(
     !!localStorage.getItem('token')
   );
-  const [favorites, setFavorites] = useState(() => {
-    const savedFavorites = localStorage.getItem('favorites');
-    return savedFavorites ? JSON.parse(savedFavorites) : [];
-  });
+  const [favorites, setFavorites] = useState([]);
   const [user, setUser] = useState(null);
 
+  // Toggle dark mode and save to local storage
   const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => !prevMode);
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      localStorage.setItem('darkMode', JSON.stringify(newMode));
+      return newMode;
+    });
   };
 
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
-
+  // Save last search to local storage
   useEffect(() => {
     localStorage.setItem('lastSearch', lastSearch);
   }, [lastSearch]);
 
+  // Validate token and fetch user data on mount
   useEffect(() => {
     const validateToken = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         console.log('No token found, skipping validation');
+        setFavorites([]);
         return;
       }
       try {
@@ -56,10 +57,28 @@ export const MovieProvider = ({ children }) => {
     validateToken();
   }, []);
 
+  // Fetch favorites when user is authenticated
   useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-  }, [favorites]);
+    const fetchFavorites = async () => {
+      const token = localStorage.getItem('token');
+      if (!token || !isAuthenticated) {
+        setFavorites([]);
+        return;
+      }
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setFavorites(res.data.favorites || []);
+      } catch (err) {
+        console.error('Error fetching favorites:', err.response?.data || err.message);
+        setFavorites([]);
+      }
+    };
+    fetchFavorites();
+  }, [isAuthenticated]);
 
+  // Login function
   const login = async (token) => {
     try {
       localStorage.setItem('token', token);
@@ -71,35 +90,73 @@ export const MovieProvider = ({ children }) => {
       setIsAuthenticated(true);
     } catch (err) {
       console.error('Login validation failed:', err.response?.data || err.message);
-      logout();
+      localStorage.removeItem('token');
+      setIsAuthenticated(false);
+      setUser(null);
+      setFavorites([]);
     }
   };
 
+  // Logout function
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('favorites');
     setIsAuthenticated(false);
     setFavorites([]);
     setUser(null);
   };
 
-  const addFavorite = (movie) => {
-    setFavorites((prevFavorites) => {
-      if (!prevFavorites.some((fav) => fav.id === movie.id)) {
-        return [...prevFavorites, movie];
-      }
-      return prevFavorites;
-    });
+  // Add a movie to favorites
+  const addFavorite = async (movie) => {
+    if (!isAuthenticated) {
+      console.error('User not logged in');
+      return false;
+    }
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/api/favorites`,
+        { movie },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      setFavorites(res.data.favorites || []);
+      return true;
+    } catch (err) {
+      console.error('Error adding favorite:', err.response?.data || err.message);
+      return false;
+    }
   };
 
-  const removeFavorite = (movieId) => {
-    setFavorites((prevFavorites) =>
-      prevFavorites.filter((fav) => fav.id !== movieId)
-    );
+  // Remove a movie from favorites
+  const removeFavorite = async (movieId) => {
+    if (!isAuthenticated) {
+      console.error('User not logged in');
+      return false;
+    }
+    try {
+      const res = await axios.delete(`${API_BASE_URL}/api/favorites/${movieId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setFavorites(res.data.favorites || []);
+      return true;
+    } catch (err) {
+      console.error('Error removing favorite:', err.response?.data || err.message);
+      return false;
+    }
   };
 
-  const clearFavorites = () => {
-    setFavorites([]);
+  // Clear all favorites
+  const clearFavorites = async () => {
+    if (!isAuthenticated) {
+      console.error('User not logged in');
+      return;
+    }
+    try {
+      await axios.delete(`${API_BASE_URL}/api/favorites`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setFavorites([]);
+    } catch (err) {
+      console.error('Error clearing favorites:', err.response?.data || err.message);
+    }
   };
 
   return (
