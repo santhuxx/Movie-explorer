@@ -1,6 +1,6 @@
-# 🎬 MovieMaster - Modern Movie Discovery Platform
+# 🎬 Flickx - Modern Movie Discovery Platform
 
-**MovieMaster** is a responsive web application that helps users discover movies, manage favorites, and enjoy a personalized movie exploration experience. Built with modern technologies, it offers a seamless interface for film enthusiasts.
+**Flickx** is a responsive web application that helps users discover movies, manage favorites, and enjoy a personalized movie exploration experience. Built with modern technologies, it offers a seamless interface for film enthusiasts.
 
 ---
 
