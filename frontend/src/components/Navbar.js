@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -24,10 +24,11 @@ import {
 import { MovieContext } from '../context/MovieContext';
 
 const Navbar = () => {
-  const { isDarkMode, toggleDarkMode, setIsAuthenticated, logout } = useContext(MovieContext);
+  const { isDarkMode, toggleDarkMode, setIsAuthenticated, logout, isAuthenticated } = useContext(MovieContext);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation(); // Add useLocation to detect the current route
 
   // Handle scroll effect
   useEffect(() => {
@@ -40,7 +41,7 @@ const Navbar = () => {
 
   // Handle sign out
   const handleSignOut = () => {
-    logout(); // Use the logout function from MovieContext
+    logout();
     navigate('/login');
   };
 
@@ -57,7 +58,7 @@ const Navbar = () => {
           variant="h6"
           sx={{ color: isDarkMode ? 'white' : 'black', fontWeight: 'bold' }}
         >
-          MovieApp
+          Flickx
         </Typography>
       </Box>
       <Divider />
@@ -93,18 +94,32 @@ const Navbar = () => {
             primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
           />
         </ListItem>
-        <ListItem button onClick={() => { handleSignOut(); handleDrawerToggle(); }}>
-          <ListItemIcon>
-            <Logout sx={{ color: isDarkMode ? 'white' : 'black' }} />
-          </ListItemIcon>
-          <ListItemText
-            primary="Sign Out"
-            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
-          />
-        </ListItem>
+        {isAuthenticated && (
+          <ListItem button onClick={() => { handleSignOut(); handleDrawerToggle(); }}>
+            <ListItemIcon>
+              <Logout sx={{ color: isDarkMode ? 'white' : 'black' }} />
+            </ListItemIcon>
+            <ListItemText
+              primary="Sign Out"
+              primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+            />
+          </ListItem>
+        )}
       </List>
     </Box>
   );
+
+  // Determine text/icon color based on route and mode
+  const getColor = () => {
+    if (location.pathname === '/login' && !isDarkMode) {
+      return 'black'; // Black text/icons on login page in light mode
+    }
+    return scrolled
+      ? isDarkMode
+        ? 'white'
+        : 'black'
+      : 'white'; // Default behavior for other routes
+  };
 
   return (
     <AppBar
@@ -131,29 +146,19 @@ const Navbar = () => {
           sx={{
             flexGrow: 1,
             textDecoration: 'none',
-            color: scrolled
-              ? isDarkMode
-                ? 'white'
-                : 'black'
-              : 'white',
+            color: getColor(),
             fontWeight: 'bold',
             fontSize: { xs: '1.1rem', sm: '1.5rem' },
           }}
         >
-          MovieApp
+          Flickx
         </Typography>
         {/* Desktop Navigation */}
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
           <IconButton
             component={Link}
             to="/"
-            sx={{
-              color: scrolled
-                ? isDarkMode
-                  ? 'white'
-                  : 'black'
-                : 'white',
-            }}
+            sx={{ color: getColor() }}
             aria-label="Home"
           >
             <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Home</Typography>
@@ -161,43 +166,27 @@ const Navbar = () => {
           <IconButton
             component={Link}
             to="/favorites"
-            sx={{
-              color: scrolled
-                ? isDarkMode
-                  ? 'white'
-                  : 'black'
-                : 'white',
-            }}
+            sx={{ color: getColor() }}
             aria-label="Favorites"
           >
             <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Favorites</Typography>
           </IconButton>
           <IconButton
             onClick={toggleDarkMode}
-            sx={{
-              color: scrolled
-                ? isDarkMode
-                  ? 'white'
-                  : 'black'
-                : 'white',
-            }}
+            sx={{ color: getColor() }}
             aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDarkMode ? <Brightness7 /> : <Brightness4 />}
           </IconButton>
-          <IconButton
-            onClick={handleSignOut}
-            sx={{
-              color: scrolled
-                ? isDarkMode
-                  ? 'white'
-                  : 'black'
-                : 'white',
-            }}
-            aria-label="Sign out"
-          >
-            <Logout />
-          </IconButton>
+          {isAuthenticated && (
+            <IconButton
+              onClick={handleSignOut}
+              sx={{ color: getColor() }}
+              aria-label="Sign out"
+            >
+              <Logout />
+            </IconButton>
+          )}
         </Box>
         {/* Mobile Menu Button */}
         <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
@@ -205,13 +194,7 @@ const Navbar = () => {
             color="inherit"
             aria-label="Open menu"
             onClick={handleDrawerToggle}
-            sx={{
-              color: scrolled
-                ? isDarkMode
-                  ? 'white'
-                  : 'black'
-                : 'white',
-            }}
+            sx={{ color: getColor() }}
           >
             <MenuIcon />
           </IconButton>
@@ -228,7 +211,7 @@ const Navbar = () => {
         sx={{
           display: { xs: 'block', sm: 'none' },
           '& .MuiDrawer-paper': {
-            bgcolor: isDarkMode ? '#121212' : 'background.paper', // Set full Drawer background to black in dark mode
+            bgcolor: isDarkMode ? '#121212' : 'background.paper',
           },
         }}
       >
