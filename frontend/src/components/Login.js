@@ -334,9 +334,18 @@ const Login = () => {
                 sx={{ mb: 3 }}
               />
             )}
-            <GoogleButtonWrapper>
-              <div ref={googleButtonRef} />
-            </GoogleButtonWrapper>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                mt: 0, // Adjust margin as needed
+              }}
+            >
+              <GoogleButtonWrapper>
+                <div ref={googleButtonRef} />
+              </GoogleButtonWrapper>
+            </Box>
             <SubmitButton type="submit" variant="contained" fullWidth>
               {isRegister ? 'Register' : 'Login'}
             </SubmitButton>
