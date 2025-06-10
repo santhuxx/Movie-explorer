@@ -25,6 +25,7 @@ import { MovieContext } from '../context/MovieContext';
 import { API_BASE_URL } from '../config';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import GoogleAd from '../components/GoogleAd';
 
 const Home = () => {
   const { setLastSearch } = useContext(MovieContext);
@@ -588,6 +589,7 @@ const Home = () => {
               </Grid>
             ))}
           </Grid>
+          <GoogleAd/>
         </Box>
       </Container>  
     </Box>

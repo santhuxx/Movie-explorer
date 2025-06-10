@@ -8,8 +8,9 @@ import MovieDetails from './components/MovieDetails';
 import Favorites from './components/Favorites';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
-import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/react"
+import GoogleAdScript from './components/GoogleAdScript'; // Import the new component
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const AppContent = () => {
   const { isDarkMode, isAuthenticated } = useContext(MovieContext);
@@ -25,7 +26,7 @@ const AppContent = () => {
         primary: isDarkMode ? '#ffffff' : '#000000',
       },
       primary: {
-        main: '#1976d2', // Blue for button and focused outlines
+        main: '#1976d2',
       },
     },
   });
@@ -33,6 +34,7 @@ const AppContent = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <GoogleAdScript /> {/* Add the AdSense script here */}
       <Navbar />
       <Routes>
         <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
