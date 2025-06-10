@@ -96,9 +96,10 @@ const MovieDetails = () => {
         <Box
           sx={{
             position: 'relative',
-            height: { xs: 'auto', sm: '70vh', md: '70vh' },
+            height: 'auto', // Changed to auto to fit content
+            minHeight: { xs: '80vh', sm: '70vh', md: '70vh' }, // Minimum height, but can expand
             width: '100%',
-            overflow: 'hidden',
+            overflow: 'visible', // Ensure no hidden overflow
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -122,8 +123,10 @@ const MovieDetails = () => {
               alignItems: 'center',
               justifyContent: 'center',
               pt: { xs: 4, sm: 8 },
-              pb: { xs: 4, sm: 0 },
+              pb: { xs: 4, sm: 8 }, // Increased bottom padding to prevent cropping
               minHeight: { xs: '80vh', sm: '70vh' },
+              position: 'relative',
+              zIndex: 1,
             }}
           >
             {/* Poster */}
@@ -159,9 +162,9 @@ const MovieDetails = () => {
                 color: 'white',
                 width: { xs: '100%', md: '60%' },
                 textAlign: { xs: 'center', md: 'left' },
-                overflow: 'visible',
-                padding: { xs: 0, sm: 2, md: 0 }, // Adjusted padding for sm range
-                maxHeight: 'none', // Ensure no height constraint cuts off content
+                overflow: 'visible', // Ensure no hidden overflow
+                padding: { xs: 0, sm: 2, md: 0 },
+                maxHeight: 'none', // Remove height constraint
               }}
             >
               <Typography
@@ -171,7 +174,7 @@ const MovieDetails = () => {
                   fontWeight: 700,
                   mb: 1,
                   fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' },
-                  wordBreak: 'break-word', // Prevent text overflow
+                  wordBreak: 'break-word',
                 }}
               >
                 {movie.title}
@@ -282,9 +285,10 @@ const MovieDetails = () => {
                   fontSize: { xs: '0.9rem', sm: '1.1rem' },
                   mb: 3,
                   lineHeight: 1.6,
-                  maxWidth: '90%',
+                  maxWidth: '100%', // Removed 90% maxWidth to allow full width
                   mx: { xs: 'auto', md: 0 },
-                  wordBreak: 'break-word', // Prevent text overflow
+                  wordBreak: 'break-word',
+                  overflow: 'visible', // Ensure no hidden overflow
                 }}
               >
                 {movie.overview}
