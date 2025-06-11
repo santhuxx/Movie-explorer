@@ -26,6 +26,7 @@ import { API_BASE_URL } from '../config';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import GoogleAd from '../components/GoogleAd';
+import { Analytics } from '@vercel/analytics/react';
 
 const Home = () => {
   const { setLastSearch } = useContext(MovieContext);
