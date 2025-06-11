@@ -2,30 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { TextField, IconButton, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import useDebounce from './useDebounce';
 
 const SearchBar = ({ onSearch, initialQuery = '', transparent = false }) => {
   const [query, setQuery] = useState(initialQuery);
+  const debouncedQuery = useDebounce(query, 300); // Debounce with 300ms delay
 
+  // Trigger search on debounced query changes
   useEffect(() => {
-    setQuery(initialQuery);
-  }, [initialQuery]);
-
-  const handleSubmit = e => {
-    e.preventDefault();
-    if (query.trim()) {
-      onSearch(query);
-    }
-  };
+    console.log('Debounced query:', debouncedQuery); // Debug log
+    onSearch(debouncedQuery.trim());
+  }, [debouncedQuery, onSearch]);
 
   const handleClear = () => {
+    console.log('Clear button clicked'); // Debug log
     setQuery('');
-    onSearch('');
+    onSearch(''); // Immediately clear search results
+  };
+
+  const handleSearchClick = () => {
+    if (query.trim()) {
+      console.log('Search button clicked:', query); // Debug log
+      onSearch(query.trim()); // Trigger immediate search
+    }
   };
 
   return (
     <Box
-      component="form"
-      onSubmit={handleSubmit}
       sx={{
         display: 'flex',
         alignItems: 'center',
@@ -94,7 +97,7 @@ const SearchBar = ({ onSearch, initialQuery = '', transparent = false }) => {
         }}
       />
       <IconButton
-        type="submit"
+        onClick={handleSearchClick}
         disabled={!query.trim()}
         sx={{
           color: transparent ? 'white' : 'primary.main',
