@@ -5,10 +5,14 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import { MovieContext } from '../context/MovieContext';
 
 const MovieCard = ({ movie }) => {
-  const { favorites, addFavorite, removeFavorite } = useContext(MovieContext);
+  const { favorites, addFavorite, removeFavorite, isAuthenticated, setShowLoginDialog } = useContext(MovieContext);
   const isFavorite = favorites.some(fav => fav.id === movie.id);
 
   const handleFavoriteToggle = () => {
+    if (!isAuthenticated) {
+      setShowLoginDialog(true);
+      return;
+    }
     if (isFavorite) {
       removeFavorite(movie.id);
     } else {
@@ -82,10 +86,10 @@ const MovieCard = ({ movie }) => {
           sx={{
             fontSize: { xs: '0.9rem', sm: '1.1rem' },
             fontWeight: 600,
-            color: 'inherit', // Inherit white color from parent
-            textDecoration: 'none', // Remove underline
+            color: 'inherit',
+            textDecoration: 'none',
             '&:hover': {
-              textDecoration: 'bold', // Add underline on hover for visual feedback
+              textDecoration: 'bold',
             },
           }}
           component={Link}
