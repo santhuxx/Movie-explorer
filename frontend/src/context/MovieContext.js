@@ -15,7 +15,7 @@ export const MovieProvider = ({ children }) => {
   );
   const [favorites, setFavorites] = useState([]);
   const [user, setUser] = useState(null);
-  const [showLoginDialog, setShowLoginDialog] = useState(false); // Ensure this is included
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const toggleDarkMode = () => {
     setIsDarkMode((prevMode) => {
@@ -66,6 +66,7 @@ export const MovieProvider = ({ children }) => {
         const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log('Fetched favorites:', res.data.favorites);
         setFavorites(res.data.favorites || []);
       } catch (err) {
         console.error('Error fetching favorites:', err.response?.data || err.message);
@@ -111,6 +112,7 @@ export const MovieProvider = ({ children }) => {
         { movie },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
+      console.log('Add favorite response:', res.data);
       setFavorites(res.data.favorites || []);
       return true;
     } catch (err) {
@@ -125,13 +127,17 @@ export const MovieProvider = ({ children }) => {
       return false;
     }
     try {
+      console.log('Removing favorite with ID:', movieId);
       const res = await axios.delete(`${API_BASE_URL}/api/favorites/${movieId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
+      console.log('Remove favorite response:', res.data);
       setFavorites(res.data.favorites || []);
       return true;
     } catch (err) {
       console.error('Error removing favorite:', err.response?.data || err.message);
+      // Fallback: Update state locally if server fails
+      setFavorites((prev) => prev.filter(fav => String(fav.id) !== String(movieId)));
       return false;
     }
   };
@@ -169,7 +175,7 @@ export const MovieProvider = ({ children }) => {
         setFavorites,
         user,
         showLoginDialog,
-        setShowLoginDialog, // Ensure this is included
+        setShowLoginDialog,
       }}
     >
       {children}

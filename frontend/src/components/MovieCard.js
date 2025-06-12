@@ -1,3 +1,4 @@
+
 import React, { useContext } from 'react';
 import { Card, CardMedia, CardContent, Typography, Box, IconButton, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -6,16 +7,25 @@ import { MovieContext } from '../context/MovieContext';
 
 const MovieCard = ({ movie }) => {
   const { favorites, addFavorite, removeFavorite, isAuthenticated, setShowLoginDialog } = useContext(MovieContext);
-  const isFavorite = favorites.some(fav => fav.id === movie.id);
+  
+  // Ensure movie.id is a string for consistent comparison
+  const movieId = String(movie.id);
+  const isFavorite = favorites.some(fav => String(fav.id) === movieId);
 
   const handleFavoriteToggle = () => {
+    console.log('Favorite Toggle:', { movieId, isFavorite, isAuthenticated });
+    
     if (!isAuthenticated) {
+      console.log('User not authenticated, showing login dialog');
       setShowLoginDialog(true);
       return;
     }
+
     if (isFavorite) {
-      removeFavorite(movie.id);
+      console.log('Removing favorite:', movieId);
+      removeFavorite(movieId); // Pass string ID
     } else {
+      console.log('Adding favorite:', movie);
       addFavorite(movie);
     }
   };
