@@ -44,7 +44,6 @@ const Home = () => {
   const [bannerLoading, setBannerLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Persist filter state to localStorage
   useEffect(() => {
     localStorage.setItem('lastSearch', query);
     setLastSearch(query);
@@ -62,7 +61,6 @@ const Home = () => {
     localStorage.setItem('sortBy', sortBy);
   }, [sortBy]);
 
-  // Fetch initial data
   useEffect(() => {
     const fetchTrending = async () => {
       try {
@@ -86,7 +84,6 @@ const Home = () => {
         setBannerLoading(false);
       }
     };
-    
 
     const fetchGenres = async () => {
       try {
@@ -103,7 +100,6 @@ const Home = () => {
     fetchGenres();
   }, []);
 
-  // Trigger search only when query is non-empty
   useEffect(() => {
     if (query) {
       handleSearch(query, 1);
@@ -157,7 +153,6 @@ const Home = () => {
     localStorage.removeItem('sortBy');
   };
 
-  // Responsive slider settings
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -179,16 +174,13 @@ const Home = () => {
   };
 
   return (
-    
     <Box sx={{ bgcolor: theme.palette.background.default, minHeight: '100vh' }}>
-      {/* Banner with Sliding Posters */}
       <Box
         sx={{
           position: 'relative',
           height: { xs: '50vh', sm: '50vh', md: '60vh' },
           overflow: 'hidden',
         }}
-        
       >
         {bannerLoading && (
           <CircularProgress sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
@@ -235,7 +227,6 @@ const Home = () => {
             </Box>
           ))}
         </Slider>
-        {/* Search Bar and Filters Overlay */}
         <Box
           sx={{
             position: 'absolute',
@@ -507,10 +498,7 @@ const Home = () => {
           </Box>
         </Box>
       </Box>
-
-      {/* Main Content */}
       <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 } }}>
-        {/* Error and Loading States */}
         {error && (
           <Alert severity="error" sx={{ mb: 2, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
             {error}
@@ -521,8 +509,6 @@ const Home = () => {
             <CircularProgress size={30} />
           </Box>
         )}
-
-        {/* Search Results or No Results Found */}
         {query && !loading && searchResults.length === 0 && (
           <Box sx={{ mb: { xs: 2, sm: 4 }, textAlign: 'center' }}>
             <Typography
@@ -572,8 +558,6 @@ const Home = () => {
             </Box>
           </Box>
         )}
-
-        {/* Trending Movies */}
         <Box>
           <Typography
             variant="h5"
@@ -581,7 +565,6 @@ const Home = () => {
             sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}
           >
             Trending Movies
-            
           </Typography>
           <Grid container spacing={{ xs: 1, sm: 2 }}>
             {trending.map(movie => (
@@ -590,9 +573,8 @@ const Home = () => {
               </Grid>
             ))}
           </Grid>
-          <GoogleAd/>
         </Box>
-      </Container>  
+      </Container>
     </Box>
   );
 };

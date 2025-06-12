@@ -15,8 +15,8 @@ export const MovieProvider = ({ children }) => {
   );
   const [favorites, setFavorites] = useState([]);
   const [user, setUser] = useState(null);
+  const [showLoginDialog, setShowLoginDialog] = useState(false); // Ensure this is included
 
-  // Toggle dark mode and save to local storage
   const toggleDarkMode = () => {
     setIsDarkMode((prevMode) => {
       const newMode = !prevMode;
@@ -25,12 +25,10 @@ export const MovieProvider = ({ children }) => {
     });
   };
 
-  // Save last search to local storage
   useEffect(() => {
     localStorage.setItem('lastSearch', lastSearch);
   }, [lastSearch]);
 
-  // Validate token and fetch user data on mount
   useEffect(() => {
     const validateToken = async () => {
       const token = localStorage.getItem('token');
@@ -57,7 +55,6 @@ export const MovieProvider = ({ children }) => {
     validateToken();
   }, []);
 
-  // Fetch favorites when user is authenticated
   useEffect(() => {
     const fetchFavorites = async () => {
       const token = localStorage.getItem('token');
@@ -78,7 +75,6 @@ export const MovieProvider = ({ children }) => {
     fetchFavorites();
   }, [isAuthenticated]);
 
-  // Login function
   const login = async (token) => {
     try {
       localStorage.setItem('token', token);
@@ -97,7 +93,6 @@ export const MovieProvider = ({ children }) => {
     }
   };
 
-  // Logout function
   const logout = () => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
@@ -105,7 +100,6 @@ export const MovieProvider = ({ children }) => {
     setUser(null);
   };
 
-  // Add a movie to favorites
   const addFavorite = async (movie) => {
     if (!isAuthenticated) {
       console.error('User not logged in');
@@ -125,7 +119,6 @@ export const MovieProvider = ({ children }) => {
     }
   };
 
-  // Remove a movie from favorites
   const removeFavorite = async (movieId) => {
     if (!isAuthenticated) {
       console.error('User not logged in');
@@ -143,7 +136,6 @@ export const MovieProvider = ({ children }) => {
     }
   };
 
-  // Clear all favorites
   const clearFavorites = async () => {
     if (!isAuthenticated) {
       console.error('User not logged in');
@@ -176,9 +168,13 @@ export const MovieProvider = ({ children }) => {
         clearFavorites,
         setFavorites,
         user,
+        showLoginDialog,
+        setShowLoginDialog, // Ensure this is included
       }}
     >
       {children}
     </MovieContext.Provider>
   );
 };
+
+export default MovieProvider;

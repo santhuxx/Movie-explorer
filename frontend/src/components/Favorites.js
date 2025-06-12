@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -87,12 +88,11 @@ const EmptyStateBox = styled(Box)(({ theme }) => ({
 }));
 
 const Favorites = () => {
-  const { favorites, clearFavorites } = useContext(MovieContext);
+  const { favorites, clearFavorites, isAuthenticated } = useContext(MovieContext);
   const theme = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Simulate loading state
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -100,10 +100,13 @@ const Favorites = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <Fade in timeout={800}>
       <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
-        {/* Hero Section */}
         <HeroBox>
           <Typography
             variant="h3"
@@ -129,8 +132,6 @@ const Favorites = () => {
             Explore your handpicked collection of favorite films, curated just for you.
           </Typography>
         </HeroBox>
-
-        {/* Main Content */}
         <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6 } }}>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -140,7 +141,7 @@ const Favorites = () => {
           {isLoading ? (
             <Grid container spacing={{ xs: 1, sm: 2 }} justifyContent="center">
               {[...Array(4)].map((_, index) => (
-                <Grid item xs= {6} sm={4} md={3} key={index}>
+                <Grid item xs={6} sm={4} md={3} key={index}>
                   <Skeleton
                     variant="rectangular"
                     width="100%"

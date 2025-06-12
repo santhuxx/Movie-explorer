@@ -12,6 +12,7 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
+  Button,
 } from '@mui/material';
 import {
   Brightness4,
@@ -20,43 +21,111 @@ import {
   Menu as MenuIcon,
   Home as HomeIcon,
   Favorite as FavoriteIcon,
+  Login as LoginIcon,
 } from '@mui/icons-material';
 import { MovieContext } from '../context/MovieContext';
+import { styled } from '@mui/material/styles';
+
+const LoginButton = styled(Button, {
+  shouldForwardProp: (prop) => prop !== 'scrolled',
+})(({ theme, scrolled }) => ({
+  borderRadius: 20,
+  padding: theme.spacing(1, 2.5),
+  textTransform: 'none',
+  fontWeight: 600,
+  fontSize: '0.9rem',
+  backgroundColor: scrolled
+    ? theme.palette.mode === 'dark'
+      ? 'rgba(255,255,255,0.15)'
+      : 'rgba(0,0,0,0.1)'
+    : 'rgba(255,255,255,0.15)',
+  backdropFilter: 'blur(4px)',
+  border: `1px solid ${theme.palette.divider}33`,
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: scrolled
+      ? theme.palette.mode === 'dark'
+        ? 'rgba(255,255,255,0.25)'
+        : 'rgba(0,0,0,0.15)'
+      : 'rgba(255,255,255,0.25)',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 3px 8px rgba(0, 0, 0, 0.15)',
+  },
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(0.75, 2),
+    fontSize: '0.85rem',
+  },
+}));
+
+const DrawerLoginButton = styled(Button)(({ theme }) => ({
+  borderRadius: 20,
+  padding: theme.spacing(1, 2),
+  textTransform: 'none',
+  fontWeight: 600,
+  fontSize: '0.9rem',
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+  color: theme.palette.mode === 'dark' ? 'white' : 'black',
+  width: '100%',
+  justifyContent: 'flex-start',
+  '&:hover': {
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+    transform: 'none',
+  },
+}));
 
 const Navbar = () => {
-  const { isDarkMode, toggleDarkMode, setIsAuthenticated, logout, isAuthenticated } = useContext(MovieContext);
+  const { isDarkMode, toggleDarkMode, logout, isAuthenticated, setShowLoginDialog } = useContext(MovieContext);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation(); // Add useLocation to detect the current route
+  const location = useLocation();
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Set initial state
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Handle sign out
   const handleSignOut = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
-  // Toggle mobile drawer
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  // Drawer content
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
+  const getColor = () => {
+    // Black text on /login page in light mode
+    if (location.pathname === '/login' && !isDarkMode) {
+      return 'black';
+    }
+    // White text at the top when unscrolled in both modes
+    if (!scrolled) {
+      return 'white';
+    }
+    // When scrolled: white in dark mode, black in light mode
+    return isDarkMode ? 'white' : 'black';
+  };
+
+  const getDrawerColor = () => {
+    // Black text/icons in drawer on /login page in light mode
+    return location.pathname === '/login' && !isDarkMode ? 'black' : isDarkMode ? 'white' : 'black';
+  };
+
   const drawerContent = (
     <Box sx={{ width: 250, height: '100%', bgcolor: isDarkMode ? '#121212' : 'background.paper' }}>
       <Box sx={{ p: 2 }}>
         <Typography
           variant="h6"
-          sx={{ color: isDarkMode ? 'white' : 'black', fontWeight: 'bold' }}
+          sx={{ color: getDrawerColor(), fontWeight: 'bold' }}
         >
           Flickx
         </Typography>
@@ -65,61 +134,58 @@ const Navbar = () => {
       <List>
         <ListItem button component={Link} to="/" onClick={handleDrawerToggle}>
           <ListItemIcon>
-            <HomeIcon sx={{ color: isDarkMode ? 'white' : 'black' }} />
+            <HomeIcon sx={{ color: getDrawerColor() }} />
           </ListItemIcon>
           <ListItemText
             primary="Home"
-            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: getDrawerColor() }}
           />
         </ListItem>
         <ListItem button component={Link} to="/favorites" onClick={handleDrawerToggle}>
           <ListItemIcon>
-            <FavoriteIcon sx={{ color: isDarkMode ? 'white' : 'black' }} />
+            <FavoriteIcon sx={{ color: getDrawerColor() }} />
           </ListItemIcon>
           <ListItemText
             primary="Favorites"
-            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: getDrawerColor() }}
           />
         </ListItem>
         <ListItem button onClick={() => { toggleDarkMode(); handleDrawerToggle(); }}>
           <ListItemIcon>
             {isDarkMode ? (
-              <Brightness7 sx={{ color: 'white' }} />
+              <Brightness7 sx={{ color: getDrawerColor() }} />
             ) : (
-              <Brightness4 sx={{ color: 'black' }} />
+              <Brightness4 sx={{ color: getDrawerColor() }} />
             )}
           </ListItemIcon>
           <ListItemText
             primary={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: getDrawerColor() }}
           />
         </ListItem>
-        {isAuthenticated && (
+        {isAuthenticated ? (
           <ListItem button onClick={() => { handleSignOut(); handleDrawerToggle(); }}>
             <ListItemIcon>
-              <Logout sx={{ color: isDarkMode ? 'white' : 'black' }} />
+              <Logout sx={{ color: getDrawerColor() }} />
             </ListItemIcon>
             <ListItemText
               primary="Sign Out"
-              primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+              primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: getDrawerColor() }}
             />
           </ListItem>
-        )}
+        ) : location.pathname !== '/login' ? (
+          <ListItem onClick={() => { handleLoginClick(); handleDrawerToggle(); }}>
+            <ListItemIcon>
+              <LoginIcon sx={{ color: getDrawerColor() }} />
+            </ListItemIcon>
+            <DrawerLoginButton sx={{ color: getDrawerColor() }}>
+              Login
+            </DrawerLoginButton>
+          </ListItem>
+        ) : null}
       </List>
     </Box>
   );
-
-  // Determine text/icon color based on route and mode
-  const getColor = () => {
-    if (location.pathname === '/login' && !isDarkMode) {
-      return 'black'; // Black text/icons on login page in light mode
-    }
-    return scrolled
-      ? isDarkMode
-        ? 'white'
-        : 'black'
-      : 'white'; // Default behavior for other routes
-  };
 
   return (
     <AppBar
@@ -153,7 +219,6 @@ const Navbar = () => {
         >
           Flickx
         </Typography>
-        {/* Desktop Navigation */}
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
           <IconButton
             component={Link}
@@ -178,7 +243,7 @@ const Navbar = () => {
           >
             {isDarkMode ? <Brightness7 /> : <Brightness4 />}
           </IconButton>
-          {isAuthenticated && (
+          {isAuthenticated ? (
             <IconButton
               onClick={handleSignOut}
               sx={{ color: getColor() }}
@@ -186,9 +251,17 @@ const Navbar = () => {
             >
               <Logout />
             </IconButton>
-          )}
+          ) : location.pathname !== '/login' ? (
+            <LoginButton
+              onClick={handleLoginClick}
+              sx={{ color: getColor() }}
+              aria-label="Login"
+              scrolled={scrolled}
+            >
+              Login
+            </LoginButton>
+          ) : null}
         </Box>
-        {/* Mobile Menu Button */}
         <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
           <IconButton
             color="inherit"
@@ -200,7 +273,6 @@ const Navbar = () => {
           </IconButton>
         </Box>
       </Toolbar>
-      {/* Mobile Drawer */}
       <Drawer
         anchor="right"
         open={mobileOpen}
