@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { MovieProvider, MovieContext } from './context/MovieContext';
@@ -9,8 +9,8 @@ import Favorites from './components/Favorites';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
 import GoogleAdScript from './components/GoogleAdScript';
-import LoginDialog from './components/LoginDialog'; // New login dialog component
-import { Analytics } from "@vercel/analytics/react";
+import LoginDialog from './components/LoginDialog';
+import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const AppContent = () => {
@@ -41,8 +41,7 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/movie/:id" element={<MovieDetails />} />
-        <Route path="/favorites" element={<Favorites />}
-        />
+        <Route path="/favorites" element={<Favorites />} />
       </Routes>
       <LoginDialog />
       <Analytics />
@@ -55,8 +54,6 @@ const App = () => {
   return (
     <MovieProvider>
       <AppContent />
-      <Analytics />
-      <SpeedInsights />
     </MovieProvider>
   );
 };
