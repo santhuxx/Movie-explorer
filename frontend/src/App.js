@@ -11,7 +11,7 @@ import Navbar from './components/Navbar';
 import GoogleAdScript from './components/GoogleAdScript';
 import LoginDialog from './components/LoginDialog'; // New login dialog component
 import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const AppContent = () => {
   const { isDarkMode } = useContext(MovieContext);
