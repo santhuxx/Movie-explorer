@@ -4,7 +4,8 @@ import App from './App';
 import './index.css';
 import { BrowserRouter } from 'react-router-dom';
 import { MovieProvider } from './context/MovieContext';
-import { SpeedInsights } from "@vercel/speed-insights/react";
+import { SpeedInsights } from '@vercel/speed-insights/react';
+
 
 
 
