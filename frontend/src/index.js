@@ -4,6 +4,8 @@ import App from './App';
 import './index.css';
 import { BrowserRouter } from 'react-router-dom';
 import { MovieProvider } from './context/MovieContext';
+import { SpeedInsights } from "@vercel/speed-insights/react";
+
 
 
 
@@ -12,6 +14,7 @@ ReactDOM.render(
     <MovieProvider>
       <App />
     </MovieProvider>
+    <SpeedInsights />
   </BrowserRouter>,
   document.getElementById('root')
 );
