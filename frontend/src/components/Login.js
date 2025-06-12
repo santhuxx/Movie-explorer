@@ -22,6 +22,7 @@ import { API_BASE_URL } from '../config';
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 400,
   width: '100%',
+  maxHeight: '95vh',
   padding: theme.spacing(4),
   borderRadius: theme.shape.borderRadius * 10,
   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
@@ -96,7 +97,6 @@ const ToggleButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-// Custom styled Google button wrapper with increased specificity
 const GoogleButtonWrapper = styled('div')(({ theme }) => ({
   marginBottom: theme.spacing(2),
   '& .g_id_signin': {
@@ -106,7 +106,7 @@ const GoogleButtonWrapper = styled('div')(({ theme }) => ({
     width: '100%',
     height: '100%',
     borderRadius: theme.shape.borderRadius * 2,
-    backgroundColor: '#4285f4 !important', // Enforce blue background
+    backgroundColor: '#4285f4 !important',
     fontWeight: 600,
     textTransform: 'none',
     padding: theme.spacing(1.5),
@@ -123,20 +123,12 @@ const GoogleButtonWrapper = styled('div')(({ theme }) => ({
     '& .g_id_signin_text': {
       fontSize: '1rem',
       fontWeight: 600,
-      color: theme.palette.primary.main, // Enforce blue
+      color: theme.palette.common.white,
     },
-  },
-  // Fallback to ensure text color applies
-  '& .g_id_signin::after': {
-    content: 'attr(data-text)', // Fallback if text is not directly accessible
-    position: 'absolute',
-    color: theme.palette.primary.main,
-    pointerEvents: 'none',
-    zIndex: 1,
   },
 }));
 
-const Login = () => {
+const Login = ({ onSuccess }) => {
   const { login } = useContext(MovieContext);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -185,14 +177,16 @@ const Login = () => {
   }, []);
 
   const handleGoogleResponse = async (response) => {
-    console.log('Google response:', response);
     try {
       const res = await axios.post(`${API_BASE_URL}/api/auth/google`, {
         credential: response.credential,
       });
-      console.log('Login response:', res.data);
       await login(res.data.token);
-      navigate('/');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('Google Sign-In error:', err.response?.data || err.message);
       setError(err.response?.data?.error || 'Google Sign-In failed');
@@ -222,9 +216,12 @@ const Login = () => {
         ? { username, email, password }
         : { username, password };
       const res = await axios.post(`${API_BASE_URL}/api/auth/${endpoint}`, payload);
-      console.log('Login/Register response:', res.data);
       await login(res.data.token);
-      navigate('/');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('Login/Register error:', err.response?.data || err.message);
       setError(err.response?.data?.error || 'An error occurred');
@@ -339,7 +336,7 @@ const Login = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                mt: 0, // Adjust margin as needed
+                mt: 0,
               }}
             >
               <GoogleButtonWrapper>
