@@ -8,12 +8,13 @@ import MovieDetails from './components/MovieDetails';
 import Favorites from './components/Favorites';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
-import GoogleAdScript from './components/GoogleAdScript'; // Import the new component
+import GoogleAdScript from './components/GoogleAdScript';
+import LoginDialog from './components/LoginDialog'; // New login dialog component
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const AppContent = () => {
-  const { isDarkMode, isAuthenticated } = useContext(MovieContext);
+  const { isDarkMode } = useContext(MovieContext);
 
   const theme = createTheme({
     palette: {
@@ -34,14 +35,18 @@ const AppContent = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <GoogleAdScript /> {/* Add the AdSense script here */}
+      <GoogleAdScript />
       <Navbar />
       <Routes>
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
-        <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/movie/:id" element={isAuthenticated ? <MovieDetails /> : <Navigate to="/login" />} />
-        <Route path="/favorites" element={isAuthenticated ? <Favorites /> : <Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/movie/:id" element={<MovieDetails />} />
+        <Route path="/favorites" element={<Favorites />}
+        />
       </Routes>
+      <LoginDialog />
+      <Analytics />
+      <SpeedInsights />
     </ThemeProvider>
   );
 };
