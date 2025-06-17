@@ -58,18 +58,37 @@ const LoginButton = styled(Button, {
 }));
 
 const DrawerLoginButton = styled(Button)(({ theme }) => ({
-  borderRadius: 20,
-  padding: theme.spacing(1, 2),
+  borderRadius: 8,
+  padding: theme.spacing(0.75, 1.5),
   textTransform: 'none',
-  fontWeight: 600,
+  fontWeight: 500,
   fontSize: '0.9rem',
-  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-  color: theme.palette.mode === 'dark' ? 'white' : 'black',
+  background: theme.palette.mode === 'dark'
+    ? 'linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))'
+    : 'linear-gradient(145deg, rgba(0,0,0,0.05), rgba(0,0,0,0.02))',
+  color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+  border: `1px solid ${theme.palette.divider}22`,
+  boxShadow: theme.palette.mode === 'dark'
+    ? '0 2px 4px rgba(0,0,0,0.2)'
+    : '0 2px 4px rgba(0,0,0,0.1)',
   width: '100%',
   justifyContent: 'flex-start',
+  transition: 'background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease',
   '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-    transform: 'none',
+    background: theme.palette.mode === 'dark'
+      ? 'linear-gradient(145deg, rgba(255,255,255,0.15), rgba(255,255,255,0.1))'
+      : 'linear-gradient(145deg, rgba(0,0,0,0.1), rgba(0,0,0,0.05))',
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 4px 8px rgba(0,0,0,0.3)'
+      : '0 4px 8px rgba(0,0,0,0.15)',
+    transform: 'translateY(-1px)',
+  },
+  '& .MuiButton-startIcon': {
+    marginRight: theme.spacing(1),
+  },
+  [theme.breakpoints.down('xs')]: {
+    fontSize: '0.85rem',
+    padding: theme.spacing(0.5, 1.25),
   },
 }));
 
@@ -103,20 +122,16 @@ const Navbar = () => {
   };
 
   const getColor = () => {
-    // Black text on /login page in light mode
     if (location.pathname === '/login' && !isDarkMode) {
       return 'black';
     }
-    // White text at the top when unscrolled in both modes
     if (!scrolled) {
       return 'white';
     }
-    // When scrolled: white in dark mode, black in light mode
     return isDarkMode ? 'white' : 'black';
   };
 
   const getDrawerColor = () => {
-    // Black text/icons in drawer on /login page in light mode
     return location.pathname === '/login' && !isDarkMode ? 'black' : isDarkMode ? 'white' : 'black';
   };
 
@@ -131,10 +146,10 @@ const Navbar = () => {
         </Typography>
       </Box>
       <Divider />
-      <List>
+      <List sx={{ padding: 1 }}>
         <ListItem button component={Link} to="/" onClick={handleDrawerToggle}>
-          <ListItemIcon>
-            <HomeIcon sx={{ color: getDrawerColor() }} />
+          <ListItemIcon sx={{ minWidth: 36 }}>
+            <HomeIcon sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
           </ListItemIcon>
           <ListItemText
             primary="Home"
@@ -142,8 +157,8 @@ const Navbar = () => {
           />
         </ListItem>
         <ListItem button component={Link} to="/favorites" onClick={handleDrawerToggle}>
-          <ListItemIcon>
-            <FavoriteIcon sx={{ color: getDrawerColor() }} />
+          <ListItemIcon sx={{ minWidth: 36 }}>
+            <FavoriteIcon sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
           </ListItemIcon>
           <ListItemText
             primary="Favorites"
@@ -151,11 +166,11 @@ const Navbar = () => {
           />
         </ListItem>
         <ListItem button onClick={() => { toggleDarkMode(); handleDrawerToggle(); }}>
-          <ListItemIcon>
+          <ListItemIcon sx={{ minWidth: 36 }}>
             {isDarkMode ? (
-              <Brightness7 sx={{ color: getDrawerColor() }} />
+              <Brightness7 sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
             ) : (
-              <Brightness4 sx={{ color: getDrawerColor() }} />
+              <Brightness4 sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
             )}
           </ListItemIcon>
           <ListItemText
@@ -165,8 +180,8 @@ const Navbar = () => {
         </ListItem>
         {isAuthenticated ? (
           <ListItem button onClick={() => { handleSignOut(); handleDrawerToggle(); }}>
-            <ListItemIcon>
-              <Logout sx={{ color: getDrawerColor() }} />
+            <ListItemIcon sx={{ minWidth: 36 }}>
+              <Logout sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
             </ListItemIcon>
             <ListItemText
               primary="Sign Out"
@@ -174,11 +189,15 @@ const Navbar = () => {
             />
           </ListItem>
         ) : location.pathname !== '/login' ? (
-          <ListItem onClick={() => { handleLoginClick(); handleDrawerToggle(); }}>
-            <ListItemIcon>
-              <LoginIcon sx={{ color: getDrawerColor() }} />
-            </ListItemIcon>
-            <DrawerLoginButton sx={{ color: getDrawerColor() }}>
+          <ListItem
+            button
+            onClick={() => { handleLoginClick(); handleDrawerToggle(); }}
+            sx={{ padding: 1 }}
+          >
+            <DrawerLoginButton
+              startIcon={<LoginIcon sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />}
+              sx={{ color: getDrawerColor() }}
+            >
               Login
             </DrawerLoginButton>
           </ListItem>
