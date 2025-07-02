@@ -4,7 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const movieRoutes = require('./routes/movies');
 const authRoutes = require('./routes/auth');
-const authMiddleware = require('./middleware/auth'); // Import your JWT middleware
+const authMiddleware = require('./middleware/auth'); 
 
 dotenv.config();
 const app = express();
@@ -13,7 +13,7 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'development'
     ? 'http://localhost:3000'
-    : process.env.FRONTEND_URL || 'https://movie-explorer-client-iota.vercel.app', // Update FRONTEND_URL in .env for production
+    : process.env.FRONTEND_URL || 'https://movie-explorer-client-iota.vercel.app', 
   credentials: true, // Allow cookies/auth headers if needed
 };
 app.use(cors({
@@ -79,6 +79,5 @@ const PORT = process.env.PORT || 5001;
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 } else {
-  // For production (e.g., Vercel), export app for serverless
   module.exports = app;
 }

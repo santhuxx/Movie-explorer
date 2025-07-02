@@ -13,7 +13,7 @@ const GoogleAdScript = () => {
     };
   }, []);
 
-  return null; // No UI, just script loading
+  return null; 
 };
 
 export default GoogleAdScript;

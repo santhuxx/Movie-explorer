@@ -6,7 +6,7 @@ import { MovieProvider, MovieContext } from './context/MovieContext';
 import Home from './pages/Home';
 import MovieDetails from './components/MovieDetails';
 import Favorites from './components/Favorites';
-import Login from './components/Login';
+import Login from './pages/Login';
 import Navbar from './components/Navbar';
 import GoogleAdScript from './components/GoogleAdScript';
 import LoginDialog from './components/LoginDialog';
