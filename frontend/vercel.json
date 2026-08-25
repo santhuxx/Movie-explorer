@@ -1,12 +1,8 @@
 {
-    "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/src/index.js"
-        },
-        {
-            "source": "/(.*)",
-            "destination": "/src/app.js"
-        }
-    ]
+  "rewrites": [
+    {
+      "source": "/((?!static/).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

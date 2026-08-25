@@ -20,12 +20,13 @@ import {
   Drawer,
   Badge,
 } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import MovieCard from '../components/MovieCard';
 import SearchBar from '../components/SearchBar';
+import Seo, { SITE_URL } from '../components/Seo';
 import { MovieContext } from '../context/MovieContext';
 import { API_BASE_URL } from '../config';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -94,13 +95,16 @@ const Home = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const backdropSize = isMobile ? 'w780' : 'w1280';
+  const [searchParams] = useSearchParams();
   const [trending, setTrending] = useState([]);
   const [bannerTrending, setBannerTrending] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
-  const [query, setQuery] = useState(localStorage.getItem('lastSearch') || '');
+  const [query, setQuery] = useState(
+    () => searchParams.get('q') || localStorage.getItem('lastSearch') || ''
+  );
   const [genres, setGenres] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState(localStorage.getItem('selectedGenre') || '');
   const [year, setYear] = useState(localStorage.getItem('year') || '');
@@ -473,6 +477,22 @@ const Home = () => {
 
   return (
     <Box sx={{ bgcolor: theme.palette.background.default, minHeight: '100vh' }}>
+      <Seo
+        title="Discover Movies 2026 | New Films, Trailers & Favorites"
+        description="Discover new movies in 2026, trending films, trailers, and ratings on Flickx. Search the latest releases, explore popular cinema, and save favorites."
+        path="/"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'Flickx',
+          url: SITE_URL,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: `${SITE_URL}/?q={search_term_string}`,
+            'query-input': 'required name=search_term_string',
+          },
+        }}
+      />
       <Box
         sx={{
           position: 'relative',

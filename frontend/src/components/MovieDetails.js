@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
 import { MovieContext } from '../context/MovieContext';
+import Seo from './Seo';
 
 const MovieDetailsSkeleton = ({ onBack }) => (
   <Box sx={{ position: 'relative', minHeight: '100vh' }}>
@@ -322,6 +323,41 @@ const MovieDetails = () => {
   return (
     <Fade in={true} timeout={800}>
       <Box sx={{ position: 'relative' }}>
+        <Seo
+          title={`${movie.title}${
+            movie.release_date ? ` (${new Date(movie.release_date).getFullYear()})` : ''
+          } — Cast, Trailer & Details`}
+          description={
+            movie.overview
+              ? movie.overview.slice(0, 155) + (movie.overview.length > 155 ? '…' : '')
+              : `Explore ${movie.title} on Flickx — cast, trailer, ratings, and details.`
+          }
+          path={`/movie/${movie.id}`}
+          image={
+            movie.poster_path
+              ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+              : undefined
+          }
+          type="video.movie"
+          jsonLd={{
+            '@context': 'https://schema.org',
+            '@type': 'Movie',
+            name: movie.title,
+            description: movie.overview || undefined,
+            image: movie.poster_path
+              ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+              : undefined,
+            datePublished: movie.release_date || undefined,
+            aggregateRating: movie.vote_average
+              ? {
+                  '@type': 'AggregateRating',
+                  ratingValue: movie.vote_average,
+                  bestRating: 10,
+                  ratingCount: movie.vote_count || undefined,
+                }
+              : undefined,
+          }}
+        />
         {/* Hero Section with Backdrop */}
         <Box
           sx={{

@@ -1,6 +1,7 @@
 {
-  "short_name": "FlickX",
-  "name": "Your Cinema, Reimagined",
+  "short_name": "Flickx",
+  "name": "Flickx — Discover Movies & New Films",
+  "description": "Discover new movies in 2026, trending films, trailers, and save favorites.",
   "icons": [
     {
       "src": "movie.png",
