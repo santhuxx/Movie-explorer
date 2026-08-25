@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TextField, IconButton, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -7,22 +7,24 @@ import useDebounce from './useDebounce';
 const SearchBar = ({ onSearch, initialQuery = '', transparent = false }) => {
   const [query, setQuery] = useState(initialQuery);
   const debouncedQuery = useDebounce(query, 300); // Debounce with 300ms delay
+  const onSearchRef = useRef(onSearch);
 
-  // Trigger search on debounced query changes
   useEffect(() => {
-    console.log('Debounced query:', debouncedQuery); // Debug log
-    onSearch(debouncedQuery.trim());
-  }, [debouncedQuery, onSearch]);
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
+  // Trigger search only when the debounced query changes
+  useEffect(() => {
+    onSearchRef.current(debouncedQuery.trim());
+  }, [debouncedQuery]);
 
   const handleClear = () => {
-    console.log('Clear button clicked'); // Debug log
     setQuery('');
     onSearch(''); // Immediately clear search results
   };
 
   const handleSearchClick = () => {
     if (query.trim()) {
-      console.log('Search button clicked:', query); // Debug log
       onSearch(query.trim()); // Trigger immediate search
     }
   };

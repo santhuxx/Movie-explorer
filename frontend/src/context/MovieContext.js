@@ -14,8 +14,25 @@ export const MovieProvider = ({ children }) => {
     !!localStorage.getItem('token')
   );
   const [favorites, setFavorites] = useState([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(
+    () => !!localStorage.getItem('token')
+  );
   const [user, setUser] = useState(null);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
+
+  const showToast = (message, severity = 'info') => {
+    setToast({ open: true, message, severity });
+  };
+
+  const hideToast = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setToast((prev) => ({ ...prev, open: false }));
+  };
 
   const toggleDarkMode = () => {
     setIsDarkMode((prevMode) => {
@@ -33,7 +50,6 @@ export const MovieProvider = ({ children }) => {
     const validateToken = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        console.log('No token found, skipping validation');
         setFavorites([]);
         return;
       }
@@ -41,14 +57,14 @@ export const MovieProvider = ({ children }) => {
         const res = await axios.get(`${API_BASE_URL}/api/auth/validate`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Validation success:', res.data.user);
         setUser(res.data.user);
         setIsAuthenticated(true);
       } catch (err) {
-        console.error('Token validation failed:', err.response?.data || err.message);
-        if (err.response?.data?.error === 'Token expired') {
-          alert('Session expired. Please log in again.');
-        }
+        const message =
+          err.response?.data?.error === 'Token expired'
+            ? 'Session expired. Please log in again.'
+            : 'Session invalid. Please log in again.';
+        showToast(message, 'warning');
         logout();
       }
     };
@@ -60,17 +76,20 @@ export const MovieProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token || !isAuthenticated) {
         setFavorites([]);
+        setFavoritesLoading(false);
         return;
       }
+      setFavoritesLoading(true);
       try {
         const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Fetched favorites:', res.data.favorites);
         setFavorites(res.data.favorites || []);
       } catch (err) {
-        console.error('Error fetching favorites:', err.response?.data || err.message);
         setFavorites([]);
+        showToast('Failed to load favorites.', 'error');
+      } finally {
+        setFavoritesLoading(false);
       }
     };
     fetchFavorites();
@@ -82,15 +101,19 @@ export const MovieProvider = ({ children }) => {
       const res = await axios.get(`${API_BASE_URL}/api/auth/validate`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('Login validation success:', res.data.user);
       setUser(res.data.user);
       setIsAuthenticated(true);
+      return true;
     } catch (err) {
-      console.error('Login validation failed:', err.response?.data || err.message);
       localStorage.removeItem('token');
       setIsAuthenticated(false);
       setUser(null);
       setFavorites([]);
+      showToast(
+        err.response?.data?.error || 'Login failed. Please try again.',
+        'error'
+      );
+      return false;
     }
   };
 
@@ -103,7 +126,7 @@ export const MovieProvider = ({ children }) => {
 
   const addFavorite = async (movie) => {
     if (!isAuthenticated) {
-      console.error('User not logged in');
+      setShowLoginDialog(true);
       return false;
     }
     try {
@@ -112,39 +135,42 @@ export const MovieProvider = ({ children }) => {
         { movie },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
-      console.log('Add favorite response:', res.data);
       setFavorites(res.data.favorites || []);
+      showToast('Added to favorites', 'success');
       return true;
     } catch (err) {
-      console.error('Error adding favorite:', err.response?.data || err.message);
+      showToast(
+        err.response?.data?.error || 'Failed to add favorite.',
+        'error'
+      );
       return false;
     }
   };
 
   const removeFavorite = async (movieId) => {
     if (!isAuthenticated) {
-      console.error('User not logged in');
+      setShowLoginDialog(true);
       return false;
     }
     try {
-      console.log('Removing favorite with ID:', movieId);
       const res = await axios.delete(`${API_BASE_URL}/api/favorites/${movieId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      console.log('Remove favorite response:', res.data);
       setFavorites(res.data.favorites || []);
       return true;
     } catch (err) {
-      console.error('Error removing favorite:', err.response?.data || err.message);
-      // Fallback: Update state locally if server fails
-      setFavorites((prev) => prev.filter(fav => String(fav.id) !== String(movieId)));
+      setFavorites((prev) => prev.filter((fav) => String(fav.id) !== String(movieId)));
+      showToast(
+        err.response?.data?.error || 'Failed to remove favorite.',
+        'error'
+      );
       return false;
     }
   };
 
   const clearFavorites = async () => {
     if (!isAuthenticated) {
-      console.error('User not logged in');
+      setShowLoginDialog(true);
       return;
     }
     try {
@@ -153,7 +179,10 @@ export const MovieProvider = ({ children }) => {
       });
       setFavorites([]);
     } catch (err) {
-      console.error('Error clearing favorites:', err.response?.data || err.message);
+      showToast(
+        err.response?.data?.error || 'Failed to clear favorites.',
+        'error'
+      );
     }
   };
 
@@ -169,6 +198,7 @@ export const MovieProvider = ({ children }) => {
         login,
         logout,
         favorites,
+        favoritesLoading,
         addFavorite,
         removeFavorite,
         clearFavorites,
@@ -176,6 +206,9 @@ export const MovieProvider = ({ children }) => {
         user,
         showLoginDialog,
         setShowLoginDialog,
+        toast,
+        showToast,
+        hideToast,
       }}
     >
       {children}

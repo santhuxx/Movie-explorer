@@ -45,7 +45,18 @@ const MovieCard = ({ movie }) => {
         },
       }}
     >
-      <Box sx={{ position: 'relative' }}>
+      <Box
+        component={Link}
+        to={`/movie/${movie.id}`}
+        aria-label={`View details for ${movie.title}`}
+        sx={{
+          position: 'relative',
+          display: 'block',
+          textDecoration: 'none',
+          color: 'inherit',
+          cursor: 'pointer',
+        }}
+      >
         <CardMedia
           component="img"
           height={{ xs: 150, sm: 200 }}
@@ -74,6 +85,7 @@ const MovieCard = ({ movie }) => {
             right: 0,
             height: '100%',
             background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent 50%)',
+            pointerEvents: 'none',
           }}
         />
       </Box>

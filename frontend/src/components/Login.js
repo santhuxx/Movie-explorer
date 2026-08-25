@@ -15,7 +15,7 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from 'axios';
 import { MovieContext } from '../context/MovieContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { API_BASE_URL } from '../config';
 
@@ -138,9 +138,18 @@ const Login = ({ onSuccess }) => {
   const [isRegister, setIsRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const googleButtonRef = useRef(null);
+
+  const redirectAfterLogin = () => {
+    const from = location.state?.from;
+    const target =
+      typeof from === 'string' && from && from !== '/login' ? from : '/';
+    navigate(target, { replace: true });
+  };
 
   useEffect(() => {
     const initializeGoogle = () => {
@@ -177,19 +186,23 @@ const Login = ({ onSuccess }) => {
   }, []);
 
   const handleGoogleResponse = async (response) => {
+    setSubmitting(true);
+    setError('');
     try {
       const res = await axios.post(`${API_BASE_URL}/api/auth/google`, {
         credential: response.credential,
       });
-      await login(res.data.token);
+      const ok = await login(res.data.token);
+      if (!ok) return;
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/');
+        redirectAfterLogin();
       }
     } catch (err) {
-      console.error('Google Sign-In error:', err.response?.data || err.message);
       setError(err.response?.data?.error || 'Google Sign-In failed');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -197,12 +210,12 @@ const Login = ({ onSuccess }) => {
     e.preventDefault();
     setError('');
     if (!username || !password) {
-      setError('Please enter both username and password');
+      setError('Please enter username and password');
       return;
     }
     if (isRegister) {
       if (!email) {
-        setError('Please enter an email address');
+        setError('Please enter an email');
         return;
       }
       if (password !== confirmPassword) {
@@ -210,21 +223,24 @@ const Login = ({ onSuccess }) => {
         return;
       }
     }
+    setSubmitting(true);
     try {
       const endpoint = isRegister ? 'register' : 'login';
       const payload = isRegister
         ? { username, email, password }
         : { username, password };
       const res = await axios.post(`${API_BASE_URL}/api/auth/${endpoint}`, payload);
-      await login(res.data.token);
+      const ok = await login(res.data.token);
+      if (!ok) return;
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/');
+        redirectAfterLogin();
       }
     } catch (err) {
-      console.error('Login/Register error:', err.response?.data || err.message);
       setError(err.response?.data?.error || 'An error occurred');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -343,8 +359,8 @@ const Login = ({ onSuccess }) => {
                 <div ref={googleButtonRef} />
               </GoogleButtonWrapper>
             </Box>
-            <SubmitButton type="submit" variant="contained" fullWidth>
-              {isRegister ? 'Register' : 'Login'}
+            <SubmitButton type="submit" variant="contained" fullWidth disabled={submitting}>
+              {submitting ? 'Please wait...' : isRegister ? 'Register' : 'Login'}
             </SubmitButton>
             <ToggleButton
               onClick={() => {
@@ -356,6 +372,7 @@ const Login = ({ onSuccess }) => {
                 setConfirmPassword('');
               }}
               fullWidth
+              disabled={submitting}
               sx={{ mt: 2 }}
             >
               {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}

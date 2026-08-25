@@ -79,8 +79,8 @@ router.get('/search', async (req, res) => {
       
       res.json({
         results: finalResults,
-        total_pages: 1, // We can't accurately provide this with manual filtering
-        total_results: finalResults.length,
+        total_pages: response.data.total_pages || 1,
+        total_results: response.data.total_results || finalResults.length,
       });
     } else {
       // Use /discover/movie for filter-based searches

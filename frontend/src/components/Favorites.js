@@ -1,5 +1,5 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -9,9 +9,9 @@ import {
   Fade,
   Skeleton,
   Divider,
-  Alert,
+  IconButton,
 } from '@mui/material';
-import { Delete } from '@mui/icons-material';
+import { Delete, ArrowBack } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import MovieCard from './MovieCard';
 import { MovieContext } from '../context/MovieContext';
@@ -88,26 +88,43 @@ const EmptyStateBox = styled(Box)(({ theme }) => ({
 }));
 
 const Favorites = () => {
-  const { favorites, clearFavorites, isAuthenticated } = useContext(MovieContext);
+  const { favorites, clearFavorites, isAuthenticated, favoritesLoading } =
+    useContext(MovieContext);
   const theme = useTheme();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: '/favorites' }} />;
   }
 
   return (
     <Fade in timeout={800}>
       <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
         <HeroBox>
+          <IconButton
+            onClick={handleBack}
+            aria-label="Go back"
+            sx={{
+              position: 'absolute',
+              top: { xs: 72, sm: 80 },
+              left: { xs: 12, sm: 24 },
+              zIndex: 2,
+              color: 'white',
+              bgcolor: 'rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(6px)',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.55)' },
+            }}
+          >
+            <ArrowBack />
+          </IconButton>
           <Typography
             variant="h3"
             component="h1"
@@ -133,23 +150,18 @@ const Favorites = () => {
           </Typography>
         </HeroBox>
         <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6 } }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-          {isLoading ? (
+          {favoritesLoading ? (
             <Grid container spacing={{ xs: 1, sm: 2 }} justifyContent="center">
-              {[...Array(4)].map((_, index) => (
-                <Grid item xs={6} sm={4} md={3} key={index}>
+              {[...Array(8)].map((_, index) => (
+                <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>
                   <Skeleton
                     variant="rectangular"
-                    width="100%"
-                    height={{ xs: 200, sm: 300 }}
                     animation="wave"
                     sx={{
-                      borderRadius: 2,
-                      bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200',
+                      width: '100%',
+                      aspectRatio: '2/3',
+                      borderRadius: 3,
+                      bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.200',
                     }}
                   />
                 </Grid>
@@ -173,29 +185,13 @@ const Favorites = () => {
                 variant="body1"
                 color="text.secondary"
                 sx={{
-                  mb: 3,
                   maxWidth: '500px',
                   fontSize: { xs: '0.875rem', sm: '1rem' },
                 }}
               >
-                Start adding movies to your favorites by clicking the heart icon on movie cards in the search results or movie details.
+                Start adding movies to your favorites by clicking the heart icon on movie cards
+                or the Add to Favorites button on movie details.
               </Typography>
-              <Grid container spacing={2} justifyContent="center">
-                {[...Array(2)].map((_, index) => (
-                  <Grid item xs={6} sm={4} md={3} key={index}>
-                    <Skeleton
-                      variant="rectangular"
-                      width="100%"
-                      height={{ xs: 200, sm: 300 }}
-                      animation="wave"
-                      sx={{
-                        borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200',
-                      }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
             </EmptyStateBox>
           ) : (
             <Box>
@@ -221,7 +217,7 @@ const Favorites = () => {
                       sx={{
                         transition: 'transform 0.3s ease-in-out',
                         '&:hover': {
-                          transform: 'scale(1.05)',
+                          transform: { xs: 'none', sm: 'scale(1.05)' },
                           boxShadow:
                             theme.palette.mode === 'dark'
                               ? '0 10px 20px rgba(0,0,0,0.4)'

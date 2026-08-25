@@ -93,20 +93,30 @@ const DrawerLoginButton = styled(Button)(({ theme }) => ({
 }));
 
 const Navbar = () => {
-  const { isDarkMode, toggleDarkMode, logout, isAuthenticated, setShowLoginDialog } = useContext(MovieContext);
+  const { isDarkMode, toggleDarkMode, logout, isAuthenticated } = useContext(MovieContext);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isHeroRoute =
+    location.pathname === '/' ||
+    location.pathname === '/favorites' ||
+    location.pathname.startsWith('/movie/');
+
+  // White text only over dark heroes at the top; otherwise theme-contrast colors
+  const overDarkHero = isHeroRoute && !scrolled;
+  const navColor = overDarkHero || isDarkMode ? '#ffffff' : '#111111';
+  const solidNav = !overDarkHero;
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Set initial state
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   const handleSignOut = () => {
     logout();
@@ -118,29 +128,19 @@ const Navbar = () => {
   };
 
   const handleLoginClick = () => {
-    navigate('/login');
+    navigate('/login', {
+      state: { from: `${location.pathname}${location.search}` },
+    });
   };
 
-  const getColor = () => {
-    if (location.pathname === '/login' && !isDarkMode) {
-      return 'black';
-    }
-    if (!scrolled) {
-      return 'white';
-    }
-    return isDarkMode ? 'white' : 'black';
-  };
-
-  const getDrawerColor = () => {
-    return location.pathname === '/login' && !isDarkMode ? 'black' : isDarkMode ? 'white' : 'black';
-  };
+  const drawerColor = isDarkMode ? '#ffffff' : '#111111';
 
   const drawerContent = (
     <Box sx={{ width: 250, height: '100%', bgcolor: isDarkMode ? '#121212' : 'background.paper' }}>
       <Box sx={{ p: 2 }}>
         <Typography
           variant="h6"
-          sx={{ color: getDrawerColor(), fontWeight: 'bold' }}
+          sx={{ color: drawerColor, fontWeight: 'bold' }}
         >
           Flickx
         </Typography>
@@ -149,43 +149,43 @@ const Navbar = () => {
       <List sx={{ padding: 1 }}>
         <ListItem button component={Link} to="/" onClick={handleDrawerToggle}>
           <ListItemIcon sx={{ minWidth: 36 }}>
-            <HomeIcon sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
+            <HomeIcon sx={{ fontSize: '1.2rem', color: drawerColor }} />
           </ListItemIcon>
           <ListItemText
             primary="Home"
-            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: getDrawerColor() }}
+            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: drawerColor }}
           />
         </ListItem>
         <ListItem button component={Link} to="/favorites" onClick={handleDrawerToggle}>
           <ListItemIcon sx={{ minWidth: 36 }}>
-            <FavoriteIcon sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
+            <FavoriteIcon sx={{ fontSize: '1.2rem', color: drawerColor }} />
           </ListItemIcon>
           <ListItemText
             primary="Favorites"
-            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: getDrawerColor() }}
+            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: drawerColor }}
           />
         </ListItem>
         <ListItem button onClick={() => { toggleDarkMode(); handleDrawerToggle(); }}>
           <ListItemIcon sx={{ minWidth: 36 }}>
             {isDarkMode ? (
-              <Brightness7 sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
+              <Brightness7 sx={{ fontSize: '1.2rem', color: drawerColor }} />
             ) : (
-              <Brightness4 sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
+              <Brightness4 sx={{ fontSize: '1.2rem', color: drawerColor }} />
             )}
           </ListItemIcon>
           <ListItemText
             primary={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: getDrawerColor() }}
+            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: drawerColor }}
           />
         </ListItem>
         {isAuthenticated ? (
           <ListItem button onClick={() => { handleSignOut(); handleDrawerToggle(); }}>
             <ListItemIcon sx={{ minWidth: 36 }}>
-              <Logout sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />
+              <Logout sx={{ fontSize: '1.2rem', color: drawerColor }} />
             </ListItemIcon>
             <ListItemText
               primary="Sign Out"
-              primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: getDrawerColor() }}
+              primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: drawerColor }}
             />
           </ListItem>
         ) : location.pathname !== '/login' ? (
@@ -195,8 +195,8 @@ const Navbar = () => {
             sx={{ padding: 1 }}
           >
             <DrawerLoginButton
-              startIcon={<LoginIcon sx={{ fontSize: '1.2rem', color: getDrawerColor() }} />}
-              sx={{ color: getDrawerColor() }}
+              startIcon={<LoginIcon sx={{ fontSize: '1.2rem', color: drawerColor }} />}
+              sx={{ color: drawerColor }}
             >
               Login
             </DrawerLoginButton>
@@ -210,16 +210,21 @@ const Navbar = () => {
     <AppBar
       position="fixed"
       sx={{
-        backgroundColor: scrolled
+        backgroundColor: solidNav
           ? isDarkMode
-            ? 'rgba(30, 30, 30, 0.9)'
-            : 'rgba(255, 255, 255, 0.9)'
+            ? 'rgba(30, 30, 30, 0.92)'
+            : 'rgba(255, 255, 255, 0.92)'
           : 'transparent',
-        boxShadow: scrolled ? 2 : 0,
-        transition: 'background-color 0.3s, box-shadow 0.3s',
-        backdropFilter: scrolled ? 'blur(5px)' : 'none',
+        boxShadow: solidNav ? 2 : 0,
+        transition: 'background-color 0.3s, box-shadow 0.3s, color 0.3s',
+        backdropFilter: solidNav ? 'blur(8px)' : 'none',
         backgroundImage: 'none',
         border: 'none',
+        borderBottom: solidNav
+          ? isDarkMode
+            ? '1px solid rgba(255,255,255,0.08)'
+            : '1px solid rgba(0,0,0,0.08)'
+          : 'none',
         zIndex: (theme) => theme.zIndex.appBar,
       }}
     >
@@ -231,7 +236,7 @@ const Navbar = () => {
           sx={{
             flexGrow: 1,
             textDecoration: 'none',
-            color: getColor(),
+            color: navColor,
             fontWeight: 'bold',
             fontSize: { xs: '1.1rem', sm: '1.5rem' },
           }}
@@ -242,22 +247,26 @@ const Navbar = () => {
           <IconButton
             component={Link}
             to="/"
-            sx={{ color: getColor() }}
+            sx={{ color: navColor }}
             aria-label="Home"
           >
-            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Home</Typography>
+            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: 'inherit' }}>
+              Home
+            </Typography>
           </IconButton>
           <IconButton
             component={Link}
             to="/favorites"
-            sx={{ color: getColor() }}
+            sx={{ color: navColor }}
             aria-label="Favorites"
           >
-            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Favorites</Typography>
+            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: 'inherit' }}>
+              Favorites
+            </Typography>
           </IconButton>
           <IconButton
             onClick={toggleDarkMode}
-            sx={{ color: getColor() }}
+            sx={{ color: navColor }}
             aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDarkMode ? <Brightness7 /> : <Brightness4 />}
@@ -265,7 +274,7 @@ const Navbar = () => {
           {isAuthenticated ? (
             <IconButton
               onClick={handleSignOut}
-              sx={{ color: getColor() }}
+              sx={{ color: navColor }}
               aria-label="Sign out"
             >
               <Logout />
@@ -273,9 +282,9 @@ const Navbar = () => {
           ) : location.pathname !== '/login' ? (
             <LoginButton
               onClick={handleLoginClick}
-              sx={{ color: getColor() }}
+              sx={{ color: navColor }}
               aria-label="Login"
-              scrolled={scrolled}
+              scrolled={solidNav}
             >
               Login
             </LoginButton>
@@ -286,7 +295,7 @@ const Navbar = () => {
             color="inherit"
             aria-label="Open menu"
             onClick={handleDrawerToggle}
-            sx={{ color: getColor() }}
+            sx={{ color: navColor }}
           >
             <MenuIcon />
           </IconButton>

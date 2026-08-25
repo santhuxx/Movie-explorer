@@ -53,17 +53,22 @@ router.post('/favorites', authMiddleware, async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    const movieId = Number(movie.id);
+    if (Number.isNaN(movieId)) {
+      return res.status(400).json({ error: 'Invalid movie ID' });
+    }
+
     // Add movie ID if not already in favorites
-    if (!user.favorites.includes(movie.id)) {
-      user.favorites.push(movie.id);
+    if (!user.favorites.some((id) => Number(id) === movieId)) {
+      user.favorites.push(movieId);
       await user.save();
     }
 
     // Fetch updated favorites with TMDb details
     const favorites = await Promise.all(
-      user.favorites.map(async (movieId) => {
+      user.favorites.map(async (id) => {
         const response = await axios.get(
-          `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}`
+          `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`
         );
         return response.data;
       })
@@ -88,6 +93,36 @@ router.delete('/favorites', authMiddleware, async (req, res) => {
     res.json({ favorites: [] });
   } catch (err) {
     console.error('Error clearing favorites:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Remove a single movie from favorites
+router.delete('/favorites/:movieId', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const movieId = Number(req.params.movieId);
+    if (Number.isNaN(movieId)) {
+      return res.status(400).json({ error: 'Invalid movie ID' });
+    }
+
+    user.favorites = user.favorites.filter((id) => Number(id) !== movieId);
+    await user.save();
+
+    const favorites = await Promise.all(
+      user.favorites.map(async (id) => {
+        const response = await axios.get(
+          `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`
+        );
+        return response.data;
+      })
+    );
+
+    res.json({ favorites });
+  } catch (err) {
+    console.error('Error removing favorite:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

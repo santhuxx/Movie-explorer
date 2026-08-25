@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Container,
@@ -13,6 +13,7 @@ import {
   Fade,
   Avatar,
   Grid,
+  IconButton,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -21,11 +22,23 @@ import {
   CalendarToday,
   Language,
   People,
+  ArrowBack,
+  Favorite,
+  FavoriteBorder,
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
+import { MovieContext } from '../context/MovieContext';
 
 const MovieDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const {
+    favorites,
+    addFavorite,
+    removeFavorite,
+    isAuthenticated,
+    setShowLoginDialog,
+  } = useContext(MovieContext);
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,6 +56,14 @@ const MovieDetails = () => {
         setLoading(false);
       });
   }, [id]);
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
 
   if (loading)
     return (
@@ -63,18 +84,44 @@ const MovieDetails = () => {
       <Box
         sx={{
           display: 'flex',
+          flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
           height: '80vh',
+          gap: 2,
         }}
       >
         <Typography color="error" variant="h5">
           {error}
         </Typography>
+        <Button startIcon={<ArrowBack />} onClick={handleBack} variant="outlined">
+          Go Back
+        </Button>
       </Box>
     );
 
   if (!movie) return null;
+
+  const movieId = String(movie.id);
+  const isFavorite = favorites.some(fav => String(fav.id) === movieId);
+
+  const handleFavoriteToggle = () => {
+    if (!isAuthenticated) {
+      setShowLoginDialog(true);
+      return;
+    }
+    if (isFavorite) {
+      removeFavorite(movieId);
+    } else {
+      addFavorite({
+        id: movie.id,
+        title: movie.title,
+        poster_path: movie.poster_path,
+        release_date: movie.release_date,
+        vote_average: movie.vote_average,
+      });
+    }
+  };
 
   const trailer = movie.videos.results.find(
     video => video.type === 'Trailer' && video.site === 'YouTube'
@@ -115,6 +162,23 @@ const MovieDetails = () => {
             },
           }}
         >
+          <IconButton
+            onClick={handleBack}
+            aria-label="Go back"
+            sx={{
+              position: 'absolute',
+              top: { xs: 72, sm: 80 },
+              left: { xs: 12, sm: 24 },
+              zIndex: 2,
+              color: 'white',
+              bgcolor: 'rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(6px)',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.55)' },
+            }}
+          >
+            <ArrowBack />
+          </IconButton>
+
           <Container
             maxWidth="lg"
             sx={{
@@ -255,29 +319,66 @@ const MovieDetails = () => {
                 ))}
               </Box>
 
-              {/* Trailer Button */}
-              {trailerUrl && (
+              {/* Actions */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 1.5,
+                  mb: 2,
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  alignItems: 'center',
+                }}
+              >
+                {trailerUrl && (
+                  <Button
+                    variant="contained"
+                    color="error"
+                    startIcon={<PlayArrow />}
+                    size="large"
+                    onClick={() =>
+                      document.getElementById('trailer-section').scrollIntoView({ behavior: 'smooth' })
+                    }
+                    sx={{
+                      borderRadius: 8,
+                      px: { xs: 2, sm: 3 },
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                    }}
+                    aria-label="Scroll to trailer section"
+                  >
+                    Watch Trailer
+                  </Button>
+                )}
                 <Button
-                  variant="contained"
-                  color="error"
-                  startIcon={<PlayArrow />}
+                  variant={isFavorite ? 'contained' : 'outlined'}
+                  startIcon={isFavorite ? <Favorite /> : <FavoriteBorder />}
                   size="large"
-                  onClick={() =>
-                    document.getElementById('trailer-section').scrollIntoView({ behavior: 'smooth' })
-                  }
+                  onClick={handleFavoriteToggle}
                   sx={{
                     borderRadius: 8,
                     px: { xs: 2, sm: 3 },
-                    mb: 2,
                     textTransform: 'none',
                     fontWeight: 700,
                     fontSize: { xs: '0.9rem', sm: '1rem' },
+                    color: isFavorite ? 'white' : 'white',
+                    bgcolor: isFavorite ? '#ff5252' : 'transparent',
+                    borderColor: isFavorite ? '#ff5252' : 'rgba(255,255,255,0.6)',
+                    '&:hover': {
+                      bgcolor: isFavorite ? '#e04848' : 'rgba(255,255,255,0.12)',
+                      borderColor: isFavorite ? '#e04848' : 'white',
+                    },
                   }}
-                  aria-label="Scroll to trailer section"
+                  aria-label={
+                    isFavorite
+                      ? `Remove ${movie.title} from favorites`
+                      : `Add ${movie.title} to favorites`
+                  }
                 >
-                  Watch Trailer
+                  {isFavorite ? 'Favorited' : 'Add to Favorites'}
                 </Button>
-              )}
+              </Box>
 
               {/* Overview */}
               <Typography

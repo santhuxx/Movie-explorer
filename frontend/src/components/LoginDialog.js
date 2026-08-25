@@ -2,7 +2,7 @@
 import React, { useContext } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogActions, Button, Typography, Slide, useTheme } from '@mui/material';
 import { MovieContext } from '../context/MovieContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -45,11 +45,14 @@ const StyledButton = styled(Button)(({ theme }) => ({
 const LoginDialog = () => {
   const { showLoginDialog, setShowLoginDialog } = useContext(MovieContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
 
   const handleLogin = () => {
     setShowLoginDialog(false);
-    navigate('/login');
+    navigate('/login', {
+      state: { from: `${location.pathname}${location.search}` },
+    });
   };
 
   const handleCancel = () => {
