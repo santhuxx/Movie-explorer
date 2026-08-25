@@ -26,6 +26,8 @@ import {
   ArrowBack,
   Favorite,
   FavoriteBorder,
+  Share,
+  ContentCopy,
 } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
 import { MovieContext } from '../context/MovieContext';
@@ -177,10 +179,12 @@ const MovieDetails = () => {
     removeFavorite,
     isAuthenticated,
     setShowLoginDialog,
+    showToast,
   } = useContext(MovieContext);
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -249,6 +253,56 @@ const MovieDetails = () => {
         release_date: movie.release_date,
         vote_average: movie.vote_average,
       });
+    }
+  };
+
+  const getShareUrl = () => {
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/movie/${movie.id}`;
+  };
+
+  const copyShareLink = async () => {
+    const url = getShareUrl();
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+      }
+      showToast('Link copied', 'success');
+    } catch (err) {
+      showToast('Could not copy link', 'error');
+    }
+  };
+
+  const handleShare = async () => {
+    if (sharing) return;
+    setSharing(true);
+    const url = getShareUrl();
+    const shareData = {
+      title: movie.title,
+      text: movie.tagline || `Check out ${movie.title} on Flickx`,
+      url,
+    };
+
+    try {
+      if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+        await navigator.share(shareData);
+      } else {
+        await copyShareLink();
+      }
+    } catch (err) {
+      // User dismissed the share sheet — ignore AbortError
+      if (err?.name !== 'AbortError') {
+        await copyShareLink();
+      }
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -506,6 +560,37 @@ const MovieDetails = () => {
                   }
                 >
                   {isFavorite ? 'Favorited' : 'Add to Favorites'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={
+                    typeof navigator !== 'undefined' && navigator.share ? (
+                      <Share />
+                    ) : (
+                      <ContentCopy />
+                    )
+                  }
+                  size="large"
+                  onClick={handleShare}
+                  disabled={sharing}
+                  sx={{
+                    borderRadius: 8,
+                    px: { xs: 2, sm: 3 },
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    color: 'white',
+                    borderColor: 'rgba(255,255,255,0.6)',
+                    bgcolor: 'rgba(255,255,255,0.08)',
+                    backdropFilter: 'blur(8px)',
+                    '&:hover': {
+                      bgcolor: 'rgba(255,255,255,0.16)',
+                      borderColor: 'white',
+                    },
+                  }}
+                  aria-label={`Share ${movie.title}`}
+                >
+                  {sharing ? 'Sharing...' : 'Share'}
                 </Button>
               </Box>
 
