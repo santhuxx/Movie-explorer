@@ -157,6 +157,7 @@ export const MovieProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setFavorites(res.data.favorites || []);
+      showToast('Removed from favorites', 'success');
       return true;
     } catch (err) {
       setFavorites((prev) => prev.filter((fav) => String(fav.id) !== String(movieId)));
