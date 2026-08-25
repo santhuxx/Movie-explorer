@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import axios from 'axios';
 import {
   Container,
@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Alert,
   useTheme,
+  useMediaQuery,
   IconButton,
   Skeleton,
   Drawer,
@@ -91,11 +92,14 @@ const menuPaperSx = {
 const Home = () => {
   const { setLastSearch } = useContext(MovieContext);
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const backdropSize = isMobile ? 'w780' : 'w1280';
   const [trending, setTrending] = useState([]);
   const [bannerTrending, setBannerTrending] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
   const [query, setQuery] = useState(localStorage.getItem('lastSearch') || '');
   const [genres, setGenres] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState(localStorage.getItem('selectedGenre') || '');
@@ -106,6 +110,9 @@ const Home = () => {
   const [bannerLoading, setBannerLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [yearTouched, setYearTouched] = useState(false);
+  const searchAbortRef = useRef(null);
+  const searchRequestIdRef = useRef(0);
 
   useEffect(() => {
     localStorage.setItem('lastSearch', query);
@@ -150,10 +157,8 @@ const Home = () => {
 
     const fetchGenres = async () => {
       try {
-        const res = await axios.get(
-          'https://api.themoviedb.org/3/genre/movie/list?api_key=68652c8bbb0c3071dec9e810736c5389'
-        );
-        setGenres(res.data.genres);
+        const res = await axios.get(`${API_BASE_URL}/api/movies/genres`);
+        setGenres(res.data || []);
       } catch (err) {
         setError('Failed to fetch genres. Please try again later.');
       }
@@ -177,11 +182,21 @@ const Home = () => {
     if (query.trim() || hasFilters) {
       handleSearch(query, 1);
     } else {
+      searchAbortRef.current?.abort();
+      searchRequestIdRef.current += 1;
       setSearchResults([]);
       setPage(1);
       setTotalPages(1);
+      setTotalResults(0);
+      setLoading(false);
+      setLoadingMore(false);
     }
   }, [query, selectedGenre, year, sortBy]);
+
+  const isCanceledError = (err) =>
+    err?.code === 'ERR_CANCELED' ||
+    err?.name === 'CanceledError' ||
+    err?.name === 'AbortError';
 
   const handleSearch = async (searchQuery = '', pageNum) => {
     const trimmedQuery = (searchQuery || '').trim();
@@ -194,10 +209,19 @@ const Home = () => {
       setLoading(false);
       setLoadingMore(false);
       setTotalPages(1);
+      setTotalResults(0);
       return;
     }
 
+    let signal;
+    let requestId = searchRequestIdRef.current;
+
     if (pageNum === 1) {
+      searchAbortRef.current?.abort();
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
+      signal = controller.signal;
+      requestId = ++searchRequestIdRef.current;
       setLoading(true);
     } else {
       setLoadingMore(true);
@@ -211,15 +235,18 @@ const Home = () => {
     if (sortBy) url += `&sort_by=${sortBy}`;
 
     try {
-      const res = await axios.get(url);
+      const res = await axios.get(url, signal ? { signal } : undefined);
+      if (pageNum === 1 && requestId !== searchRequestIdRef.current) return;
+
       const results = res.data.results || [];
       const pages = Math.max(res.data.total_pages || 1, 1);
+      const total = res.data.total_results ?? results.length;
 
-      // Prefer computing outside updater so page/totalPages stay in sync
       if (pageNum === 1) {
         setSearchResults(results);
         setPage(1);
         setTotalPages(results.length === 0 ? 1 : pages);
+        setTotalResults(total);
       } else {
         setSearchResults((prev) => {
           const existingIds = new Set(prev.map((movie) => movie.id));
@@ -236,10 +263,17 @@ const Home = () => {
         });
       }
     } catch (err) {
+      if (isCanceledError(err)) return;
+      if (pageNum === 1 && requestId !== searchRequestIdRef.current) return;
       setError('Failed to search movies. Please check your connection and try again.');
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (pageNum === 1) {
+        if (requestId === searchRequestIdRef.current) {
+          setLoading(false);
+        }
+      } else {
+        setLoadingMore(false);
+      }
     }
   };
 
@@ -249,13 +283,19 @@ const Home = () => {
   };
 
   const handleFilterReset = () => {
+    searchAbortRef.current?.abort();
+    searchRequestIdRef.current += 1;
     setSelectedGenre('');
     setYear('');
+    setYearTouched(false);
     setSortBy('popularity.desc');
     setQuery('');
     setSearchResults([]);
     setPage(1);
     setTotalPages(1);
+    setTotalResults(0);
+    setLoading(false);
+    setLoadingMore(false);
     localStorage.removeItem('lastSearch');
     localStorage.removeItem('selectedGenre');
     localStorage.removeItem('year');
@@ -270,6 +310,50 @@ const Home = () => {
     (selectedGenre ? 1 : 0) +
     (yearOk ? 1 : 0) +
     (sortBy !== 'popularity.desc' ? 1 : 0);
+
+  const currentYear = new Date().getFullYear();
+
+  const applyYearValue = (val) => {
+    const next = String(val);
+    if (next.length <= 4) {
+      setYear(next);
+      setYearTouched(false);
+      if (next.length === 4 || next === '') {
+        setPage(1);
+      }
+    }
+  };
+
+  const stepYear = (direction) => {
+    // Empty: up → next year, down → previous year
+    // Filled: ±1 from typed year
+    const resolved =
+      !year || year.length !== 4
+        ? direction === 'up'
+          ? currentYear + 1
+          : currentYear - 1
+        : direction === 'up'
+          ? Number(year) + 1
+          : Number(year) - 1;
+
+    if (Number.isNaN(resolved)) return;
+    applyYearValue(Math.max(1888, Math.min(currentYear + 5, resolved)));
+  };
+
+  const handleYearKeyDown = (e) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      stepYear('up');
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      stepYear('down');
+    }
+  };
+
+  const handleYearChange = (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+    applyYearValue(val);
+  };
 
   const renderFilterControls = () => (
     <>
@@ -295,21 +379,57 @@ const Home = () => {
       <TextField
         size="small"
         label="Year"
-        type="number"
+        type="text"
         value={year}
-        onChange={e => {
-          const val = e.target.value;
-          if (val.length <= 4) {
-            setYear(val);
-            if (val.length === 4 || val === '') {
-              setPage(1);
-            }
-          }
+        onChange={handleYearChange}
+        onKeyDown={handleYearKeyDown}
+        onBlur={() => setYearTouched(true)}
+        placeholder={String(currentYear)}
+        inputProps={{
+          inputMode: 'numeric',
+          pattern: '[0-9]*',
+          maxLength: 4,
+          'aria-label': 'Release year',
         }}
-        placeholder="e.g., 2023"
-        error={Boolean(year && year.length !== 4)}
-        helperText={year && year.length !== 4 ? 'Enter a 4-digit year' : ''}
-        sx={{ ...glassFieldSx, width: { xs: '100%', sm: 100 } }}
+        InputProps={{
+          endAdornment: (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                mr: -0.5,
+                '& .MuiIconButton-root': {
+                  p: 0,
+                  color: 'rgba(255,255,255,0.85)',
+                  height: 14,
+                  width: 18,
+                },
+              }}
+            >
+              <IconButton
+                size="small"
+                aria-label="Next year"
+                onClick={() => stepYear('up')}
+                tabIndex={-1}
+              >
+                <Box component="span" sx={{ fontSize: 10, lineHeight: 1 }}>▲</Box>
+              </IconButton>
+              <IconButton
+                size="small"
+                aria-label="Previous year"
+                onClick={() => stepYear('down')}
+                tabIndex={-1}
+              >
+                <Box component="span" sx={{ fontSize: 10, lineHeight: 1 }}>▼</Box>
+              </IconButton>
+            </Box>
+          ),
+        }}
+        error={yearTouched && Boolean(year) && year.length !== 4}
+        helperText={
+          yearTouched && year && year.length !== 4 ? 'Enter a 4-digit year' : ''
+        }
+        sx={{ ...glassFieldSx, width: { xs: '100%', sm: 120 } }}
       />
       <FormControl size="small" sx={{ ...glassFieldSx, width: { xs: '100%', sm: 140 } }}>
         <InputLabel>Sort By</InputLabel>
@@ -374,7 +494,7 @@ const Home = () => {
                 aria-label={isFallback ? undefined : `View details for ${movie.title}`}
                 sx={{
                   height: { xs: '50vh', sm: '50vh', md: '60vh' },
-                  backgroundImage: `url(https://image.tmdb.org/t/p/w1280${movie.backdrop_path})`,
+                  backgroundImage: `url(https://image.tmdb.org/t/p/${backdropSize}${movie.backdrop_path})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   position: 'relative',
@@ -683,13 +803,28 @@ const Home = () => {
         )}
         {isBrowsing && !loading && searchResults.length > 0 && (
           <Box sx={{ mb: { xs: 2, sm: 4 } }}>
-            <Typography
-              variant="h5"
-              gutterBottom
-              sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}
-            >
-              {query.trim() ? 'Search Results' : 'Browse Results'}
-            </Typography>
+            <Box sx={{ mb: 1.5 }}>
+              <Typography
+                variant="h5"
+                sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}
+              >
+                {query.trim() ? 'Search Results' : 'Browse Results'}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5, fontSize: { xs: '0.85rem', sm: '0.95rem' } }}
+              >
+                {query.trim()
+                  ? `Results for "${query.trim()}" · `
+                  : ''}
+                Showing {searchResults.length.toLocaleString()}
+                {totalResults > searchResults.length
+                  ? ` of ${totalResults.toLocaleString()}`
+                  : ''}{' '}
+                {totalResults === 1 || searchResults.length === 1 ? 'movie' : 'movies'}
+              </Typography>
+            </Box>
             <Grid container spacing={{ xs: 1, sm: 2 }}>
               {searchResults.map(movie => (
                 <Grid item xs={6} sm={4} md={3} lg={2.4} key={movie.id}>
@@ -698,14 +833,59 @@ const Home = () => {
               ))}
             </Grid>
             {page < totalPages && (
-              <Box sx={{ mt: { xs: 1, sm: 2 }, textAlign: 'center' }}>
+              <Box sx={{ mt: { xs: 2, sm: 3 }, textAlign: 'center' }}>
                 <Button
-                  variant="contained"
                   onClick={loadMore}
                   disabled={loadingMore}
                   sx={{
-                    minWidth: { xs: '120px', sm: '150px' },
+                    minWidth: { xs: '140px', sm: '180px' },
+                    px: { xs: 3, sm: 4 },
+                    py: 1.25,
                     fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderRadius: 8,
+                    color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.85)',
+                    background:
+                      theme.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06))'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.65), rgba(255,255,255,0.35))',
+                    backdropFilter: 'blur(14px) saturate(160%)',
+                    WebkitBackdropFilter: 'blur(14px) saturate(160%)',
+                    border:
+                      theme.palette.mode === 'dark'
+                        ? '1px solid rgba(255,255,255,0.22)'
+                        : '1px solid rgba(255,255,255,0.7)',
+                    boxShadow:
+                      theme.palette.mode === 'dark'
+                        ? '0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)'
+                        : '0 8px 24px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
+                    transition: 'transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease',
+                    '&:hover': {
+                      background:
+                        theme.palette.mode === 'dark'
+                          ? 'linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.1))'
+                          : 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.5))',
+                      boxShadow:
+                        theme.palette.mode === 'dark'
+                          ? '0 10px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.16)'
+                          : '0 10px 28px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.9)',
+                      transform: 'translateY(-1px)',
+                    },
+                    '&.Mui-disabled': {
+                      color:
+                        theme.palette.mode === 'dark'
+                          ? 'rgba(255,255,255,0.45)'
+                          : 'rgba(0,0,0,0.4)',
+                      background:
+                        theme.palette.mode === 'dark'
+                          ? 'rgba(255,255,255,0.06)'
+                          : 'rgba(255,255,255,0.4)',
+                      border:
+                        theme.palette.mode === 'dark'
+                          ? '1px solid rgba(255,255,255,0.12)'
+                          : '1px solid rgba(0,0,0,0.08)',
+                    },
                   }}
                 >
                   {loadingMore ? 'Loading...' : 'Load More'}
@@ -714,22 +894,24 @@ const Home = () => {
             )}
           </Box>
         )}
-        <Box>
-          <Typography
-            variant="h5"
-            gutterBottom
-            sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}
-          >
-            Trending Movies
-          </Typography>
-          <Grid container spacing={{ xs: 1, sm: 2 }}>
-            {trending.map(movie => (
-              <Grid item xs={6} sm={4} md={3} lg={2.4} key={movie.id}>
-                <MovieCard movie={movie} />
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+        {!isBrowsing && (
+          <Box>
+            <Typography
+              variant="h5"
+              gutterBottom
+              sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}
+            >
+              Trending Movies
+            </Typography>
+            <Grid container spacing={{ xs: 1, sm: 2 }}>
+              {trending.map(movie => (
+                <Grid item xs={6} sm={4} md={3} lg={2.4} key={movie.id}>
+                  <MovieCard movie={movie} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
       </Container>
     </Box>
   );

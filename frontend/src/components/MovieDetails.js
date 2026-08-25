@@ -4,16 +4,17 @@ import axios from 'axios';
 import {
   Container,
   Typography,
-  CircularProgress,
   Box,
   Button,
   Chip,
-  Rating,
   Divider,
   Fade,
   Avatar,
   Grid,
   IconButton,
+  Skeleton,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -29,9 +30,147 @@ import {
 import { API_BASE_URL } from '../config';
 import { MovieContext } from '../context/MovieContext';
 
+const MovieDetailsSkeleton = ({ onBack }) => (
+  <Box sx={{ position: 'relative', minHeight: '100vh' }}>
+    <Box
+      sx={{
+        position: 'relative',
+        minHeight: { xs: '80vh', sm: '70vh' },
+        bgcolor: 'grey.900',
+        overflow: 'hidden',
+      }}
+    >
+      <IconButton
+        onClick={onBack}
+        aria-label="Go back"
+        sx={{
+          position: 'absolute',
+          top: { xs: 72, sm: 80 },
+          left: { xs: 12, sm: 24 },
+          zIndex: 2,
+          color: 'white',
+          bgcolor: 'rgba(0,0,0,0.35)',
+          backdropFilter: 'blur(6px)',
+        }}
+      >
+        <ArrowBack />
+      </IconButton>
+      <Container
+        maxWidth="lg"
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: 'center',
+          justifyContent: 'center',
+          pt: { xs: 10, sm: 12 },
+          pb: { xs: 4, sm: 8 },
+          gap: { xs: 3, md: 4 },
+        }}
+      >
+        <Skeleton
+          variant="rectangular"
+          animation="wave"
+          sx={{
+            width: { xs: '50%', sm: 220, md: 260 },
+            maxWidth: 300,
+            aspectRatio: '2/3',
+            borderRadius: 2,
+            bgcolor: 'grey.800',
+          }}
+        />
+        <Box sx={{ width: { xs: '100%', md: '60%' }, px: { xs: 1, sm: 0 } }}>
+          <Skeleton
+            variant="text"
+            animation="wave"
+            sx={{ fontSize: '2.5rem', width: '80%', bgcolor: 'grey.800', mb: 1 }}
+          />
+          <Skeleton
+            variant="text"
+            animation="wave"
+            sx={{ fontSize: '1.2rem', width: '55%', bgcolor: 'grey.800', mb: 2 }}
+          />
+          <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+            {[1, 2, 3].map((n) => (
+              <Skeleton
+                key={n}
+                variant="rounded"
+                animation="wave"
+                width={72}
+                height={28}
+                sx={{ borderRadius: 4, bgcolor: 'grey.800' }}
+              />
+            ))}
+          </Box>
+          <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width={140}
+              height={42}
+              sx={{ borderRadius: 8, bgcolor: 'grey.800' }}
+            />
+            <Skeleton
+              variant="rounded"
+              animation="wave"
+              width={160}
+              height={42}
+              sx={{ borderRadius: 8, bgcolor: 'grey.800' }}
+            />
+          </Box>
+          <Skeleton
+            variant="text"
+            animation="wave"
+            sx={{ fontSize: '1rem', bgcolor: 'grey.800' }}
+          />
+          <Skeleton
+            variant="text"
+            animation="wave"
+            sx={{ fontSize: '1rem', bgcolor: 'grey.800' }}
+          />
+          <Skeleton
+            variant="text"
+            animation="wave"
+            sx={{ fontSize: '1rem', width: '70%', bgcolor: 'grey.800' }}
+          />
+        </Box>
+      </Container>
+    </Box>
+    <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6 } }}>
+      <Skeleton
+        variant="text"
+        animation="wave"
+        sx={{ fontSize: '1.5rem', width: 140, mb: 2 }}
+      />
+      <Grid container spacing={2}>
+        {[...Array(6)].map((_, i) => (
+          <Grid item xs={4} sm={3} md={2} key={i}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Skeleton
+                variant="circular"
+                animation="wave"
+                sx={{
+                  width: { xs: 60, sm: 80 },
+                  height: { xs: 60, sm: 80 },
+                  mx: 'auto',
+                  mb: 1,
+                }}
+              />
+              <Skeleton variant="text" animation="wave" width="80%" sx={{ mx: 'auto' }} />
+              <Skeleton variant="text" animation="wave" width="60%" sx={{ mx: 'auto' }} />
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
+  </Box>
+);
+
 const MovieDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const backdropSize = isMobile ? 'w780' : 'original';
   const {
     favorites,
     addFavorite,
@@ -45,6 +184,8 @@ const MovieDetails = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    setLoading(true);
+    setError(null);
     axios
       .get(`${API_BASE_URL}/api/movies/${id}`)
       .then(res => {
@@ -65,19 +206,7 @@ const MovieDetails = () => {
     }
   };
 
-  if (loading)
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '80vh',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+  if (loading) return <MovieDetailsSkeleton onBack={handleBack} />;
 
   if (error)
     return (
@@ -154,7 +283,7 @@ const MovieDetails = () => {
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`,
+              backgroundImage: `url(https://image.tmdb.org/t/p/${backdropSize}${movie.backdrop_path})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               filter: 'brightness(0.3)',

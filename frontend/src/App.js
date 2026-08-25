@@ -48,7 +48,7 @@ const AppContent = () => {
       <LoginDialog />
       <Snackbar
         open={toast.open}
-        autoHideDuration={4000}
+        autoHideDuration={2000}
         onClose={hideToast}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         sx={{
