@@ -28,10 +28,7 @@ router.get('/search', async (req, res) => {
 
   const isNewest = sort_by === 'release_date.desc';
   const today = new Date().toISOString().slice(0, 10);
-  const currentYear = String(new Date().getFullYear());
-  // Newest: default to current year and never include unreleased future dates
-  const yearFilter =
-    primary_release_year || (isNewest ? currentYear : null);
+  const yearFilter = primary_release_year || null;
 
   try {
     if (query && query.trim()) {
