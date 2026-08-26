@@ -26,6 +26,13 @@ router.get('/search', async (req, res) => {
   let url;
   let finalResults = [];
 
+  const isNewest = sort_by === 'release_date.desc';
+  const today = new Date().toISOString().slice(0, 10);
+  const currentYear = String(new Date().getFullYear());
+  // Newest: default to current year and never include unreleased future dates
+  const yearFilter =
+    primary_release_year || (isNewest ? currentYear : null);
+
   try {
     if (query && query.trim()) {
       // Step 1: Use /search/movie for text searches
@@ -42,10 +49,15 @@ router.get('/search', async (req, res) => {
         );
       }
       
-      if (primary_release_year) {
-        const year = primary_release_year;
+      if (yearFilter) {
         searchResults = searchResults.filter(movie => 
-          movie.release_date && movie.release_date.startsWith(year)
+          movie.release_date && movie.release_date.startsWith(String(yearFilter))
+        );
+      }
+
+      if (isNewest) {
+        searchResults = searchResults.filter(
+          movie => movie.release_date && movie.release_date <= today
         );
       }
       
@@ -87,7 +99,8 @@ router.get('/search', async (req, res) => {
       url = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&page=${page}&include_adult=false`;
       
       if (with_genres) url += `&with_genres=${encodeURIComponent(with_genres)}`;
-      if (primary_release_year) url += `&primary_release_year=${encodeURIComponent(primary_release_year)}`;
+      if (yearFilter) url += `&primary_release_year=${encodeURIComponent(yearFilter)}`;
+      if (isNewest) url += `&primary_release_date.lte=${encodeURIComponent(today)}`;
       if (sort_by) url += `&sort_by=${encodeURIComponent(sort_by)}`;
       else url += '&sort_by=popularity.desc'; // Default sorting
       
@@ -96,6 +109,12 @@ router.get('/search', async (req, res) => {
       
       // Filter out movies without backdrop_path and poster_path
       finalResults = response.data.results.filter(movie => movie.backdrop_path && movie.poster_path);
+
+      if (isNewest) {
+        finalResults = finalResults.filter(
+          movie => movie.release_date && movie.release_date <= today
+        );
+      }
       
       console.log('Filtered Discover Results:', finalResults.length);
       

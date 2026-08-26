@@ -440,7 +440,12 @@ const Home = () => {
         <Select
           value={sortBy}
           onChange={e => {
-            setSortBy(e.target.value);
+            const next = e.target.value;
+            setSortBy(next);
+            // Newest without a year → current year so UI matches results
+            if (next === 'release_date.desc' && !year) {
+              setYear(String(new Date().getFullYear()));
+            }
             setPage(1);
           }}
           label="Sort By"
