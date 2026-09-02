@@ -1,6 +1,5 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext } from 'react';
 import {
-  Container,
   Card,
   TextField,
   Button,
@@ -10,6 +9,8 @@ import {
   IconButton,
   InputAdornment,
   Fade,
+  Divider,
+  Link,
   useTheme,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
@@ -18,6 +19,7 @@ import { MovieContext } from '../context/MovieContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { API_BASE_URL } from '../config';
+import GoogleSignInButton from './GoogleSignInButton';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 400,
@@ -87,47 +89,6 @@ const SubmitButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const ToggleButton = styled(Button)(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  textTransform: 'none',
-  '&:hover': {
-    color: theme.palette.primary.main,
-    backgroundColor: 'transparent',
-    textDecoration: 'underline',
-  },
-}));
-
-const GoogleButtonWrapper = styled('div')(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  '& .g_id_signin': {
-    display: 'flex !important',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-    borderRadius: theme.shape.borderRadius * 2,
-    backgroundColor: '#4285f4 !important',
-    fontWeight: 600,
-    textTransform: 'none',
-    padding: theme.spacing(1.5),
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      backgroundColor: '#357abd',
-      transform: 'translateY(-2px)',
-      boxShadow: '0 6px 16px rgba(0, 0, 0, 0.3)',
-    },
-    '& .g_id_signin_icon': {
-      marginRight: theme.spacing(1),
-    },
-    '& .g_id_signin_text': {
-      fontSize: '1rem',
-      fontWeight: 600,
-      color: theme.palette.common.white,
-    },
-  },
-}));
-
 const Login = ({ onSuccess }) => {
   const { login } = useContext(MovieContext);
   const [username, setUsername] = useState('');
@@ -142,7 +103,6 @@ const Login = ({ onSuccess }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const googleButtonRef = useRef(null);
 
   const redirectAfterLogin = () => {
     const from = location.state?.from;
@@ -150,40 +110,6 @@ const Login = ({ onSuccess }) => {
       typeof from === 'string' && from && from !== '/login' ? from : '/';
     navigate(target, { replace: true });
   };
-
-  useEffect(() => {
-    const initializeGoogle = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-          callback: handleGoogleResponse,
-          auto_select: false,
-          cancel_on_tap_outside: false,
-          context: 'signin',
-        });
-        if (googleButtonRef.current) {
-          window.google.accounts.id.renderButton(googleButtonRef.current, {
-            theme: 'outline',
-            size: 'large',
-            type: 'standard',
-            text: 'signin_with',
-            shape: 'rectangular',
-            logo_alignment: 'left',
-          });
-        }
-      }
-    };
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.onload = initializeGoogle;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
 
   const handleGoogleResponse = async (response) => {
     setSubmitting(true);
@@ -201,6 +127,7 @@ const Login = ({ onSuccess }) => {
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Google Sign-In failed');
+      throw err;
     } finally {
       setSubmitting(false);
     }
@@ -250,6 +177,15 @@ const Login = ({ onSuccess }) => {
 
   const handleToggleConfirmPassword = () => {
     setShowConfirmPassword((prev) => !prev);
+  };
+
+  const handleSwitchMode = (toRegister) => {
+    setIsRegister(toRegister);
+    setError('');
+    setUsername('');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
   };
 
   return (
@@ -347,36 +283,66 @@ const Login = ({ onSuccess }) => {
                 sx={{ mb: 3 }}
               />
             )}
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                mt: 0,
-              }}
-            >
-              <GoogleButtonWrapper>
-                <div ref={googleButtonRef} />
-              </GoogleButtonWrapper>
+            <Divider sx={{ my: 2.5 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ px: 1 }}>
+                or
+              </Typography>
+            </Divider>
+            <Box sx={{ mb: 2 }}>
+              <GoogleSignInButton
+                label={isRegister ? 'Sign up with Google' : 'Continue with Google'}
+                disabled={submitting}
+                onSuccess={handleGoogleResponse}
+                onError={() => {}}
+              />
             </Box>
             <SubmitButton type="submit" variant="contained" fullWidth disabled={submitting}>
               {submitting ? 'Please wait...' : isRegister ? 'Register' : 'Login'}
             </SubmitButton>
-            <ToggleButton
-              onClick={() => {
-                setIsRegister(!isRegister);
-                setError('');
-                setUsername('');
-                setEmail('');
-                setPassword('');
-                setConfirmPassword('');
-              }}
-              fullWidth
-              disabled={submitting}
+            <Typography
+              align="center"
+              variant="body2"
+              color="text.secondary"
               sx={{ mt: 2 }}
             >
-              {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
-            </ToggleButton>
+              {isRegister ? (
+                <>
+                  Already have an account?{' '}
+                  <Link
+                    component="button"
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => handleSwitchMode(false)}
+                    underline="hover"
+                    sx={{
+                      fontWeight: 600,
+                      verticalAlign: 'baseline',
+                      cursor: submitting ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Sign in
+                  </Link>
+                </>
+              ) : (
+                <>
+                  Need an account?{' '}
+                  <Link
+                    component="button"
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => handleSwitchMode(true)}
+                    underline="hover"
+                    sx={{
+                      fontWeight: 600,
+                      verticalAlign: 'baseline',
+                      cursor: submitting ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
+            </Typography>
           </Box>
         </StyledCard>
       </Fade>

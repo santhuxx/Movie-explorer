@@ -4,12 +4,17 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
 import { MovieProvider, MovieContext } from './context/MovieContext';
 import Home from './pages/Home';
 import MovieDetails from './components/MovieDetails';
 import Favorites from './components/Favorites';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
+import BackToTopButton from './components/BackToTopButton';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import GoogleAdScript from './components/GoogleAdScript';
 import LoginDialog from './components/LoginDialog';
 import { Analytics } from '@vercel/analytics/react';
@@ -38,14 +43,22 @@ const AppContent = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <GoogleAdScript />
+      <ScrollToTop />
       <Navbar />
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/movie/:id" element={<MovieDetails />} />
-        <Route path="/favorites" element={<Favorites />} />
-      </Routes>
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box component="main" sx={{ flex: 1 }}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/movie/:id" element={<MovieDetails />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+          </Routes>
+        </Box>
+        <Footer />
+      </Box>
       <LoginDialog />
+      <BackToTopButton />
       <Snackbar
         open={toast.open}
         autoHideDuration={2000}
