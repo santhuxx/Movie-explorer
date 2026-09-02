@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import { Button, Box, CircularProgress, useTheme } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { Box, CircularProgress, Typography, useTheme } from '@mui/material';
+import { GOOGLE_CLIENT_ID } from '../config';
 
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
@@ -23,24 +23,13 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const HiddenGoogleHost = styled(Box)({
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  padding: 0,
-  margin: -1,
-  overflow: 'hidden',
-  clip: 'rect(0, 0, 0, 0)',
-  whiteSpace: 'nowrap',
-  border: 0,
-});
-
 const GoogleSignInButton = ({ onSuccess, onError, disabled, label = 'Continue with Google' }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const hostRef = useRef(null);
   const [loading, setLoading] = React.useState(false);
   const [googleReady, setGoogleReady] = React.useState(false);
+  const [initError, setInitError] = React.useState('');
 
   const handleCredential = useCallback(
     async (response) => {
@@ -57,30 +46,39 @@ const GoogleSignInButton = ({ onSuccess, onError, disabled, label = 'Continue wi
   );
 
   useEffect(() => {
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-    if (!clientId) return undefined;
+    if (!GOOGLE_CLIENT_ID) {
+      setInitError('Google Sign-In is not configured.');
+      return undefined;
+    }
 
     const init = () => {
       if (!window.google?.accounts?.id || !hostRef.current) return;
 
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleCredential,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        context: 'signin',
-      });
+      try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleCredential,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          context: 'signin',
+          use_fedcm_for_prompt: false,
+        });
 
-      hostRef.current.innerHTML = '';
-      window.google.accounts.id.renderButton(hostRef.current, {
-        theme: 'outline',
-        size: 'large',
-        type: 'standard',
-        text: 'continue_with',
-        shape: 'rectangular',
-        width: 320,
-      });
-      setGoogleReady(true);
+        hostRef.current.innerHTML = '';
+        window.google.accounts.id.renderButton(hostRef.current, {
+          theme: 'outline',
+          size: 'large',
+          type: 'standard',
+          text: 'continue_with',
+          shape: 'rectangular',
+          width: Math.min(400, hostRef.current.parentElement?.offsetWidth || 360),
+        });
+        setGoogleReady(true);
+        setInitError('');
+      } catch (err) {
+        setInitError('Could not load Google Sign-In.');
+        console.error('Google init error:', err);
+      }
     };
 
     if (window.google?.accounts?.id) {
@@ -90,65 +88,87 @@ const GoogleSignInButton = ({ onSuccess, onError, disabled, label = 'Continue wi
 
     const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
     if (existing) {
-      existing.addEventListener('load', init);
+      if (window.google?.accounts?.id) init();
+      else existing.addEventListener('load', init);
       return () => existing.removeEventListener('load', init);
     }
 
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
+    script.defer = true;
     script.onload = init;
+    script.onerror = () => setInitError('Failed to load Google Sign-In script.');
     document.body.appendChild(script);
 
     return () => {
       script.onload = null;
+      script.onerror = null;
     };
   }, [handleCredential]);
 
-  const handleClick = () => {
-    const host = hostRef.current;
-    if (!host) return;
-    const clickable =
-      host.querySelector('div[role="button"]') ||
-      host.querySelector('[tabindex="0"]') ||
-      host.firstElementChild;
-    clickable?.click();
+  const visualStyles = {
+    py: 1.35,
+    px: 2,
+    borderRadius: 2,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1.25,
+    fontWeight: 600,
+    fontSize: '0.95rem',
+    color: isDark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.85)',
+    bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#fff',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)'}`,
+    boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
+    minHeight: 48,
+    width: '100%',
+    opacity: disabled || loading || !googleReady ? 0.6 : 1,
+    pointerEvents: 'none',
   };
 
   return (
-    <>
-      <HiddenGoogleHost aria-hidden="true">
-        <div ref={hostRef} />
-      </HiddenGoogleHost>
-      <Button
-        type="button"
-        fullWidth
-        disabled={disabled || loading || !googleReady}
-        onClick={handleClick}
-        startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <GoogleIcon />}
+    <Box sx={{ width: '100%' }}>
+      <Box
         sx={{
-          py: 1.35,
+          position: 'relative',
+          width: '100%',
+          minHeight: 48,
           borderRadius: 2,
-          textTransform: 'none',
-          fontWeight: 600,
-          fontSize: '0.95rem',
-          color: isDark ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.85)',
-          bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#fff',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)'}`,
-          boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
-          '&:hover': {
+          overflow: 'hidden',
+          '&:hover .google-visual': {
             bgcolor: isDark ? 'rgba(255,255,255,0.12)' : '#fafafa',
             borderColor: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.2)',
-            boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.1)',
-          },
-          '& .MuiButton-startIcon': {
-            mr: 1.25,
           },
         }}
       >
-        {loading ? 'Signing in...' : label}
-      </Button>
-    </>
+        <Box className="google-visual" sx={visualStyles} aria-hidden="true">
+          {loading ? <CircularProgress size={18} color="inherit" /> : <GoogleIcon />}
+          <span>{loading ? 'Signing in...' : label}</span>
+        </Box>
+
+        <Box
+          ref={hostRef}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 2,
+            opacity: 0.0001,
+            overflow: 'hidden',
+            cursor: disabled || loading || !googleReady ? 'not-allowed' : 'pointer',
+            pointerEvents: disabled || loading || !googleReady ? 'none' : 'auto',
+            '& > div': { width: '100% !important', height: '100% !important' },
+            '& iframe': { width: '100% !important', height: '100% !important' },
+          }}
+        />
+      </Box>
+
+      {initError && (
+        <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.75 }}>
+          {initError}
+        </Typography>
+      )}
+    </Box>
   );
 };
 

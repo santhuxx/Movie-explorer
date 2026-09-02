@@ -16,8 +16,14 @@ const corsOptions = {
     : process.env.FRONTEND_URL || 'https://movie-explorer-client-iota.vercel.app', // Update FRONTEND_URL in .env for production
   credentials: true, // Allow cookies/auth headers if needed
 };
+const corsOrigins = [
+  'http://localhost:3000',
+  'https://movie-explorer-client-iota.vercel.app',
+  (process.env.FRONTEND_URL || '').replace(/\/$/, ''),
+].filter(Boolean);
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://movie-explorer-client-iota.vercel.app'],
+  origin: corsOrigins,
   methods: ['GET', 'POST', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

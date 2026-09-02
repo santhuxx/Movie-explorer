@@ -5,4 +5,8 @@ yarn-error.log*
 backend/node_modules/*
 frontend/node_modules/*
 backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env.production.local
 
