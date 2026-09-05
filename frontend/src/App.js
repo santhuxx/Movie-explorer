@@ -15,6 +15,8 @@ import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import BackToTopButton from './components/BackToTopButton';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import About from './pages/About';
+import Terms from './pages/Terms';
 import GoogleAdScript from './components/GoogleAdScript';
 import LoginDialog from './components/LoginDialog';
 import { Analytics } from '@vercel/analytics/react';
@@ -53,6 +55,8 @@ const AppContent = () => {
             <Route path="/movie/:id" element={<MovieDetails />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/terms" element={<Terms />} />
           </Routes>
         </Box>
         <Footer />

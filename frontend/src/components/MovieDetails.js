@@ -32,6 +32,7 @@ import {
 import { API_BASE_URL } from '../config';
 import { MovieContext } from '../context/MovieContext';
 import Seo from './Seo';
+import GoogleAd from './GoogleAd';
 
 const MovieDetailsSkeleton = ({ onBack }) => (
   <Box sx={{ position: 'relative', minHeight: '100vh' }}>
@@ -983,6 +984,7 @@ const MovieDetails = () => {
               </Box>
             </Grid>
           </Grid>
+          <GoogleAd show={Boolean(movie.overview && movie.title)} />
         </Container>
       </Box>
     </Fade>

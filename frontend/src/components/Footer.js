@@ -6,7 +6,13 @@ const Footer = () => {
   const theme = useTheme();
   const location = useLocation();
   const year = new Date().getFullYear();
-  const isPrivacyPage = location.pathname === '/privacy';
+  const path = location.pathname;
+
+  const links = [
+    { to: '/about', label: 'About' },
+    { to: '/privacy', label: 'Privacy Policy' },
+    { to: '/terms', label: 'Terms' },
+  ].filter((link) => link.to !== path);
 
   return (
     <Box
@@ -24,7 +30,7 @@ const Footer = () => {
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           alignItems: 'center',
-          justifyContent: isPrivacyPage ? 'center' : 'space-between',
+          justifyContent: 'space-between',
           gap: 1.5,
           textAlign: 'center',
         }}
@@ -32,13 +38,19 @@ const Footer = () => {
         <Typography variant="body2" color="text.secondary">
           © {year} Flickx.
         </Typography>
-        {!isPrivacyPage && (
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link component={RouterLink} to="/privacy" variant="body2" underline="hover">
-              Privacy Policy
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {links.map((link) => (
+            <Link
+              key={link.to}
+              component={RouterLink}
+              to={link.to}
+              variant="body2"
+              underline="hover"
+            >
+              {link.label}
             </Link>
-          </Box>
-        )}
+          ))}
+        </Box>
       </Container>
     </Box>
   );
