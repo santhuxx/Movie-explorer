@@ -17,7 +17,8 @@ import BackToTopButton from './components/BackToTopButton';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import About from './pages/About';
 import Terms from './pages/Terms';
-import GoogleAdScript from './components/GoogleAdScript';
+import Guides from './pages/Guides';
+import GuideArticle from './pages/GuideArticle';
 import LoginDialog from './components/LoginDialog';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -44,7 +45,6 @@ const AppContent = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <GoogleAdScript />
       <ScrollToTop />
       <Navbar />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -57,6 +57,8 @@ const AppContent = () => {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/about" element={<About />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/guides" element={<Guides />} />
+            <Route path="/guides/:slug" element={<GuideArticle />} />
           </Routes>
         </Box>
         <Footer />

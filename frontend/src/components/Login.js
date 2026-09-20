@@ -20,6 +20,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { API_BASE_URL } from '../config';
 import GoogleSignInButton from './GoogleSignInButton';
+import Seo from './Seo';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 400,
@@ -190,6 +191,12 @@ const Login = ({ onSuccess }) => {
 
   return (
     <CinematicBox>
+      <Seo
+        title={isRegister ? 'Create Account' : 'Sign In'}
+        description="Sign in to Flickx to save favorite movies across devices."
+        path="/login"
+        noIndex
+      />
       <Fade in timeout={800}>
         <StyledCard>
           <Typography

@@ -1,5 +1,10 @@
 # https://www.robotstxt.org/robotstxt.html
+User-agent: Mediapartners-Google
+Disallow: /login
+Disallow: /favorites
+
 User-agent: *
 Allow: /
+Disallow: /login
 
 Sitemap: https://movie-explorer-client-iota.vercel.app/sitemap.xml

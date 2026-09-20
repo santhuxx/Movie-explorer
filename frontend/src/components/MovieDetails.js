@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
 import {
   Container,
@@ -13,6 +13,7 @@ import {
   Grid,
   IconButton,
   Skeleton,
+  Link,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -312,6 +313,11 @@ const MovieDetails = () => {
     video => video.type === 'Trailer' && video.site === 'YouTube'
   );
   const trailerUrl = trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null;
+  const hasPublisherContent =
+    Boolean(movie.title) &&
+    typeof movie.overview === 'string' &&
+    movie.overview.trim().length >= 240 &&
+    ((movie.credits?.cast?.length ?? 0) > 0 || Boolean(trailer));
 
   // Format runtime to hours and minutes
   const formatRuntime = minutes => {
@@ -984,7 +990,30 @@ const MovieDetails = () => {
               </Box>
             </Grid>
           </Grid>
-          <GoogleAd show={Boolean(movie.overview && movie.title)} />
+          <Box sx={{ mt: { xs: 3, sm: 4 }, maxWidth: 720 }}>
+            <Typography
+              variant="h6"
+              component="h2"
+              sx={{
+                fontWeight: 700,
+                mb: 1,
+                fontSize: { xs: '1.05rem', sm: '1.2rem' },
+              }}
+            >
+              On Flickx
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.75, mb: 1 }}>
+              This page is a Flickx title view: plot and credits from the public catalog, plus
+              trailer playback, favorites, and share. Flickx does not host the full movie. To
+              search by genre or year, go back to Home. For how search, trending, and accounts
+              work, read the{' '}
+              <Link component={RouterLink} to="/guides" underline="hover" color="inherit" sx={{ fontWeight: 600 }}>
+                Flickx guides
+              </Link>
+              .
+            </Typography>
+          </Box>
+          <GoogleAd show={hasPublisherContent} />
         </Container>
       </Box>
     </Fade>

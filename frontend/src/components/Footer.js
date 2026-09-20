@@ -9,10 +9,11 @@ const Footer = () => {
   const path = location.pathname;
 
   const links = [
+    { to: '/guides', label: 'Guides' },
     { to: '/about', label: 'About' },
     { to: '/privacy', label: 'Privacy Policy' },
     { to: '/terms', label: 'Terms' },
-  ].filter((link) => link.to !== path);
+  ].filter((link) => link.to !== path && !path.startsWith(`${link.to}/`));
 
   return (
     <Box

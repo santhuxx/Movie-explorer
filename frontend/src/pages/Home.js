@@ -32,7 +32,6 @@ import { API_BASE_URL } from '../config';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import CloseIcon from '@mui/icons-material/Close';
-import GoogleAd from '../components/GoogleAd';
 
 const glassFieldSx = {
   width: '100%',
@@ -851,7 +850,6 @@ const Home = () => {
                 </Grid>
               ))}
             </Grid>
-            <GoogleAd show={searchResults.length >= 8} />
             {page < totalPages && (
               <Box sx={{ mt: { xs: 2, sm: 3 }, textAlign: 'center' }}>
                 <Button
@@ -936,7 +934,6 @@ const Home = () => {
                 </Grid>
               ))}
             </Grid>
-            <GoogleAd show={!bannerLoading && trending.length >= 8} />
           </Box>
         )}
       </Container>

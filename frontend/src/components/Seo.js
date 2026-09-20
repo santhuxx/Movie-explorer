@@ -36,6 +36,7 @@ const Seo = ({
   image = DEFAULT_IMAGE,
   type = 'website',
   jsonLd,
+  noIndex = false,
 }) => {
   const jsonLdKey = jsonLd ? JSON.stringify(jsonLd) : '';
 
@@ -45,6 +46,7 @@ const Seo = ({
 
     document.title = fullTitle;
     setMeta('name', 'description', description);
+    setMeta('name', 'robots', noIndex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large');
     setMeta('property', 'og:title', fullTitle);
     setMeta('property', 'og:description', description);
     setMeta('property', 'og:url', url);
@@ -70,7 +72,7 @@ const Seo = ({
     } else if (script) {
       script.remove();
     }
-  }, [title, description, path, image, type, jsonLdKey]);
+  }, [title, description, path, image, type, jsonLdKey, noIndex]);
 
   return null;
 };

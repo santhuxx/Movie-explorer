@@ -20,6 +20,7 @@ import { useTheme } from '@mui/material/styles';
 import MovieCard from './MovieCard';
 import { MovieContext } from '../context/MovieContext';
 import { styled } from '@mui/material/styles';
+import Seo from './Seo';
 
 const HeroBox = styled(Box)(({ theme }) => ({
   position: 'relative',
@@ -165,6 +166,12 @@ const Favorites = () => {
   return (
     <Fade in timeout={800}>
       <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+        <Seo
+          title="Favorites"
+          description="Your saved movies on Flickx."
+          path="/favorites"
+          noIndex
+        />
         <HeroBox>
           <IconButton
             onClick={handleBack}
