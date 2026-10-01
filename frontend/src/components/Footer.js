@@ -9,6 +9,7 @@ const Footer = () => {
   const path = location.pathname;
 
   const links = [
+    { to: '/picks', label: 'What to watch' },
     { to: '/guides', label: 'Guides' },
     { to: '/about', label: 'About' },
     { to: '/privacy', label: 'Privacy Policy' },

@@ -22,7 +22,18 @@ router.get('/trending', async (req, res) => {
 
 // Search or discover movies
 router.get('/search', async (req, res) => {
-  const { query, page = 1, with_genres, primary_release_year, sort_by } = req.query;
+  const {
+    query,
+    page = 1,
+    with_genres,
+    primary_release_year,
+    sort_by,
+    with_runtime_gte,
+    with_runtime_lte,
+    release_date_gte,
+    release_date_lte,
+    vote_count_gte,
+  } = req.query;
   let url;
   let finalResults = [];
 
@@ -98,6 +109,11 @@ router.get('/search', async (req, res) => {
       if (with_genres) url += `&with_genres=${encodeURIComponent(with_genres)}`;
       if (yearFilter) url += `&primary_release_year=${encodeURIComponent(yearFilter)}`;
       if (isNewest) url += `&primary_release_date.lte=${encodeURIComponent(today)}`;
+      if (release_date_gte) url += `&primary_release_date.gte=${encodeURIComponent(release_date_gte)}`;
+      if (release_date_lte) url += `&primary_release_date.lte=${encodeURIComponent(release_date_lte)}`;
+      if (with_runtime_gte) url += `&with_runtime.gte=${encodeURIComponent(with_runtime_gte)}`;
+      if (with_runtime_lte) url += `&with_runtime.lte=${encodeURIComponent(with_runtime_lte)}`;
+      if (vote_count_gte) url += `&vote_count.gte=${encodeURIComponent(vote_count_gte)}`;
       if (sort_by) url += `&sort_by=${encodeURIComponent(sort_by)}`;
       else url += '&sort_by=popularity.desc'; // Default sorting
       

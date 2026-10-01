@@ -914,6 +914,30 @@ const Home = () => {
         )}
         {!isBrowsing && (
           <Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1,
+                mb: 2.5,
+              }}
+            >
+              <Button
+                component={Link}
+                to="/picks"
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: 8,
+                  px: 2,
+                  color: 'text.primary',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                What to watch
+              </Button>
+            </Box>
             <Typography
               variant="h5"
               sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}

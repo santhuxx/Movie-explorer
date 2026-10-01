@@ -19,6 +19,7 @@ import About from './pages/About';
 import Terms from './pages/Terms';
 import Guides from './pages/Guides';
 import GuideArticle from './pages/GuideArticle';
+import Picks from './pages/Picks';
 import LoginDialog from './components/LoginDialog';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -59,6 +60,7 @@ const AppContent = () => {
             <Route path="/terms" element={<Terms />} />
             <Route path="/guides" element={<Guides />} />
             <Route path="/guides/:slug" element={<GuideArticle />} />
+            <Route path="/picks" element={<Picks />} />
           </Routes>
         </Box>
         <Footer />

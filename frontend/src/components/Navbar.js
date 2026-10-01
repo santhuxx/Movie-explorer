@@ -22,6 +22,7 @@ import {
   Home as HomeIcon,
   Favorite as FavoriteIcon,
   Login as LoginIcon,
+  MovieFilter,
 } from '@mui/icons-material';
 import { MovieContext } from '../context/MovieContext';
 import { styled } from '@mui/material/styles';
@@ -156,6 +157,15 @@ const Navbar = () => {
             primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: drawerColor }}
           />
         </ListItem>
+        <ListItem button component={Link} to="/picks" onClick={handleDrawerToggle}>
+          <ListItemIcon sx={{ minWidth: 36 }}>
+            <MovieFilter sx={{ fontSize: '1.2rem', color: drawerColor }} />
+          </ListItemIcon>
+          <ListItemText
+            primary="Picks"
+            primaryTypographyProps={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: drawerColor }}
+          />
+        </ListItem>
         <ListItem button component={Link} to="/favorites" onClick={handleDrawerToggle}>
           <ListItemIcon sx={{ minWidth: 36 }}>
             <FavoriteIcon sx={{ fontSize: '1.2rem', color: drawerColor }} />
@@ -252,6 +262,16 @@ const Navbar = () => {
           >
             <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: 'inherit' }}>
               Home
+            </Typography>
+          </IconButton>
+          <IconButton
+            component={Link}
+            to="/picks"
+            sx={{ color: navColor }}
+            aria-label="What to watch"
+          >
+            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: 'inherit' }}>
+              Picks
             </Typography>
           </IconButton>
           <IconButton
